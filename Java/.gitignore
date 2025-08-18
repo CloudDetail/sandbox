@@ -1,0 +1,47 @@
+target/
+bin/
+build/
+
+.idea/
+.project
+.classpath
+.settings/
+.vscode/
+*.iml
+
+# Log files
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Maven local repository
+.m2/
+
+# Gradle cache
+.gradle/
+
+# Java bytecode files
+*.class
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~#
+
+# Configuration files with sensitive information
+*.properties
+*.key
+*.pem
+*.cer
+
+# Test reports
+TEST-*.xml
+
+# Dependency directories (for projects using npm/yarn)
+node_modules/
+package-lock.json
+yarn.lock

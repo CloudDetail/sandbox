@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "启动 Node.js 服务",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.js",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "NODE_ENV": "development",
+                "PORT": "3500",
+                "REDIS_HOST": "localhost",
+                "REDIS_PORT": "20000",
+                "MYSQL_HOST": "localhost",
+                "MYSQL_PORT": "3306"
+            },
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "restart": true,
+            "protocol": "inspector"
+        }
+    ]
+}

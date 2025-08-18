@@ -67,13 +67,11 @@ type CPUFaultConfig struct {
 // LatencyFaultConfig 延迟故障配置
 type LatencyFaultConfig struct {
 	DefaultDelay int `json:"default_delay"`
-	MaxDelay     int `json:"max_delay"`
 }
 
 // RedisFaultConfig Redis故障配置
 type RedisFaultConfig struct {
 	DefaultDelay int `json:"default_delay"`
-	MaxDelay     int `json:"max_delay"`
 }
 
 // LoadConfig 加载配置
@@ -115,11 +113,9 @@ func LoadConfig() *Config {
 			},
 			Latency: LatencyFaultConfig{
 				DefaultDelay: getEnvInt("LATENCY_FAULT_DEFAULT_DELAY", 200),
-				MaxDelay:     getEnvInt("LATENCY_FAULT_MAX_DELAY", 5000),
 			},
 			Redis: RedisFaultConfig{
 				DefaultDelay: getEnvInt("REDIS_FAULT_DEFAULT_DELAY", 100),
-				MaxDelay:     getEnvInt("REDIS_FAULT_MAX_DELAY", 2000),
 			},
 		},
 	}

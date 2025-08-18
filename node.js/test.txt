@@ -1,0 +1,2 @@
+# 接口参数
+	router.HandleFunc("/api/users", businessAPI.GetUsersCached).Methods("GET")

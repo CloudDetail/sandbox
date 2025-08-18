@@ -6,6 +6,7 @@ import (
 
 	"github.com/CloudDetail/apo-sandbox/fault"
 	"github.com/CloudDetail/apo-sandbox/logging"
+	"github.com/CloudDetail/apo-sandbox/model"
 	"github.com/CloudDetail/apo-sandbox/storage"
 )
 
@@ -23,7 +24,10 @@ func NewBusinessService(store *storage.Store, faultManager *fault.Manager) *Busi
 
 func (s *BusinessService) GetUsersCached(chaosType string, duration int) (string, error) {
 	if len(chaosType) > 0 {
-		params := map[string]interface{}{"duration": duration}
+		params := map[string]interface{}{}
+		if duration > 0 {
+			params["duration"] = duration
+		}
 		err := s.FaultManager.StartFault(chaosType, params)
 		if err != nil {
 			logging.Error("Start fault failed: %v", err)
@@ -31,9 +35,19 @@ func (s *BusinessService) GetUsersCached(chaosType string, duration int) (string
 	} else {
 		s.FaultManager.StopAllFaults()
 	}
-	users, err := s.Store.QueryUsersCached()
-	if err != nil {
-		return "", err
+
+	var users []model.User
+	var err error
+	if chaosType == "redis_latency" {
+		users, err = s.Store.QueryUsersCached()
+		if err != nil {
+			return "", err
+		}
+	} else {
+		users, err = s.Store.QueryUsersWithDBBackup()
+		if err != nil {
+			return "", err
+		}
 	}
 	usersJSON, err := json.Marshal(users)
 	if err != nil {

@@ -21,14 +21,6 @@ func NewRedis(addr string) *RedisClient {
 	return &RedisClient{Client: rdb}
 }
 
-func (c *RedisClient) Get(key string) (string, error) {
-	return c.Client.Get(context.Background(), key).Result()
-}
-
-func (c *RedisClient) Set(key, value string, expiration time.Duration) error {
-	return c.Client.Set(context.Background(), key, value, expiration).Err()
-}
-
 func (c *RedisClient) SetUser(user *model.User, expiration time.Duration) error {
 	key := "user:" + user.ID
 	userData, err := json.Marshal(user)
@@ -42,7 +34,7 @@ func (c *RedisClient) GetUser(id string) (*model.User, error) {
 	key := "user:" + id
 	userData, err := c.Client.Get(context.Background(), key).Result()
 	if err == redis.Nil {
-		return nil, nil // User not found in Redis
+		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
@@ -53,32 +45,6 @@ func (c *RedisClient) GetUser(id string) (*model.User, error) {
 		return nil, err
 	}
 	return &user, nil
-}
-
-func (c *RedisClient) SetOrder(order *model.Order, expiration time.Duration) error {
-	key := "order:" + order.ID
-	orderData, err := json.Marshal(order)
-	if err != nil {
-		return err
-	}
-	return c.Client.Set(context.Background(), key, orderData, expiration).Err()
-}
-
-func (c *RedisClient) GetOrder(id string) (*model.Order, error) {
-	key := "order:" + id
-	orderData, err := c.Client.Get(context.Background(), key).Result()
-	if err == redis.Nil {
-		return nil, nil // Order not found in Redis
-	} else if err != nil {
-		return nil, err
-	}
-
-	var order model.Order
-	err = json.Unmarshal([]byte(orderData), &order)
-	if err != nil {
-		return nil, err
-	}
-	return &order, nil
 }
 
 func (c *RedisClient) SetUserIDs(userIDs []string, expiration time.Duration) error {
@@ -92,7 +58,7 @@ func (c *RedisClient) SetUserIDs(userIDs []string, expiration time.Duration) err
 func (c *RedisClient) GetUserIDs() ([]string, error) {
 	userIDsData, err := c.Client.Get(context.Background(), "all_user_ids").Result()
 	if err == redis.Nil {
-		return nil, nil // User IDs not found in Redis
+		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
