@@ -41,11 +41,8 @@ public class BusinessService {
         }
 
         try {
-            if (chaosType.isPresent() && "redis_latency".equals(chaosType.get())) {
-                return store.queryUsersCached();
-            } else {
-                return store.queryUsersFromDatabase();
-            }
+            store.queryUsersCached();
+            return store.queryUsersFromDatabase();
         } catch (Exception e) {
             log.error("Failed to get users: {}", e.getMessage());
             return Collections.emptyList();

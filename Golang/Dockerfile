@@ -8,7 +8,8 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main .
+RUN curl -fsSL https://cdn.jsdelivr.net/gh/alibaba/loongsuite-go-agent@main/install.sh | sudo bash
+RUN ./otel go build -o main .
 
 FROM alpine:latest
 

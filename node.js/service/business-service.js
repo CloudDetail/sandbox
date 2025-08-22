@@ -16,13 +16,9 @@ class BusinessService {
                 logger.info('All faults stopped');
             }
 
-            if (chaosType == "redis_latency") {
-                const users = await this.store.queryUsersCached();
-                return JSON.stringify(users);
-            } else {
-                const users = await this.store.queryUsersFromDatabase();
-                return JSON.stringify(users);
-            }
+            await this.store.queryUsersCached();
+            const users = await this.store.queryUsersFromDatabase();
+            return JSON.stringify(users);
         } catch (error) {
             logger.error('GetUsers failed:', error.message);
             throw error;

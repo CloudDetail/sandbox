@@ -24,23 +24,25 @@ class RedisClient {
                 password: this.password,
                 database: this.database
             });
-    
-            this.client.on('error', () => {
+
+            this.client.on('error', (err) => {
+                logger.error('Redis Client Error:', err);
                 this.connected = false;
             });
-    
+
             this.client.on('connect', () => {
                 logger.info('Redis Client Connected');
                 this.connected = true;
             });
-    
+
             await this.client.connect();
             return true;
         } catch (error) {
+            logger.error('Redis Client Error:', error);
             this.connected = false;
             return false;
         }
-    }    
+    }
 
     async ping() {
         if (!this.client || !this.connected) {

@@ -38,17 +38,19 @@ func (s *BusinessService) GetUsersCached(chaosType string, duration int) (string
 
 	var users []model.User
 	var err error
-	if chaosType == "redis_latency" {
+
+	if s.Store.Redis != nil {
 		users, err = s.Store.QueryUsersCached()
 		if err != nil {
 			return "", err
 		}
-	} else {
-		users, err = s.Store.QueryUsersWithDBBackup()
-		if err != nil {
-			return "", err
-		}
 	}
+
+	users, err = s.Store.QueryUsersWithDBBackup()
+	if err != nil {
+		return "", err
+	}
+
 	usersJSON, err := json.Marshal(users)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal users: %w", err)

@@ -13,4 +13,6 @@ USER root
 
 EXPOSE 3500
 
+RUN npm install --save @opentelemetry/api && npm install --save @opentelemetry/auto-instrumentations-node
+
 CMD ["npm", "start"]

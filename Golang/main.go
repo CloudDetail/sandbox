@@ -102,10 +102,6 @@ func initStorage() *storage.Store {
 	// 初始化Redis连接
 	redisAddr := fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port)
 	redisClient := storage.NewRedis(redisAddr)
-	err = redisClient.Client.Ping(context.Background()).Err()
-	if err != nil {
-		redisClient = nil
-	}
 	store := &storage.Store{
 		MySQL: mysqlClient,
 		Redis: redisClient,

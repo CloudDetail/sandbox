@@ -125,6 +125,7 @@ class Store {
      */
     async queryUsersFromDatabase() {
         try {
+            logger.info('Querying users from database.');
             // 检查MySQL连接是否初始化
             // 注：在当前实现中，我们通过检查mysql实例是否为MockMySQLClient来判断连接状态
             if (!this.mysql || this.mysql instanceof MockMySQLClient) {

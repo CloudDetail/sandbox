@@ -48,7 +48,7 @@ class CPUFault(ChaosFault):
 
         start_time = time.time()
         logging.info("Starting CPU fault for %s milliseconds.", target_duration)
-        
+
         iteration_count = 0
         while (time.time() - start_time) < target_duration_s and not self._stop_event.is_set():
             self._cpu_intensive_work()
@@ -56,15 +56,15 @@ class CPUFault(ChaosFault):
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        
+
         with self._lock:
             self._active = False
-            
+
         if self._stop_event.is_set():
-            logging.info("CPU fault stopped early after %d iterations in %s CPU time.", 
+            logging.info("CPU fault stopped early after %d iterations in %s CPU time.",
                         iteration_count, f"{elapsed_time:.2f}s")
         else:
-            logging.info("CPU fault completed, executed %d iterations in %s CPU time.", 
+            logging.info("CPU fault completed, executed %d iterations in %s CPU time.",
                         iteration_count, f"{elapsed_time:.2f}s")
         return None
 

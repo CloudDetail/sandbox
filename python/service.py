@@ -21,13 +21,9 @@ class BusinessService:
         else:
             self.fault_manager.stop_all_faults()
 
-        if chaos_type == "redis_latency":
-            users, err = self.store.query_or_create_users()
-            if err:
-                return "", err
-        else:
-            users, err = self.store.query_or_create_users()
-            if err:
-                return "", err
-        
+        self.store.query_users_cached()
+        users, err = self.store.query_or_create_users()
+        if err:
+            return "", err
+
         return json.dumps([user.__dict__ for user in users]), None

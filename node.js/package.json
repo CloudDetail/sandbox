@@ -4,7 +4,7 @@
     "description": "Node.js version of APO Sandbox with fault injection capabilities",
     "main": "main.js",
     "scripts": {
-        "start": "node main.js",
+        "start": "node --require @opentelemetry/auto-instrumentations-node/register main.js",
         "dev": "nodemon main.js"
     },
     "dependencies": {

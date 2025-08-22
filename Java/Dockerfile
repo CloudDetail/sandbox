@@ -1,3 +1,5 @@
+FROM ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:2.18.1 as java_agent
+
 # Stage 1: Build the application using Maven
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
@@ -17,6 +19,8 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 3500
+RUN mkdir -p /opt/otel/
+COPY javaagent.jar /opt/otel/opentelemetry-javaagent.jar
 
 # Set entrypoint to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD java -javaagent:/opt/otel/opentelemetry-javaagent.jar -jar app.jar --server.port=3500
