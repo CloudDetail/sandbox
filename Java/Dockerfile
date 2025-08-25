@@ -20,7 +20,7 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 3500
 RUN mkdir -p /opt/otel/
-COPY javaagent.jar /opt/otel/opentelemetry-javaagent.jar
+COPY --from=java_agent javaagent.jar /opt/otel/opentelemetry-javaagent.jar
 
 # Set entrypoint to run the application
 CMD java -javaagent:/opt/otel/opentelemetry-javaagent.jar -jar app.jar --server.port=3500
