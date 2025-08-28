@@ -12,13 +12,67 @@ type BusinessAPI struct {
 	Service *service.BusinessService
 }
 
-func (b *BusinessAPI) GetUsersCached(w http.ResponseWriter, r *http.Request) {
-	chaos := r.URL.Query().Get("chaos")
+func (b *BusinessAPI) GetUsers1(w http.ResponseWriter, r *http.Request) {
+	active := r.URL.Query().Get("mode")
 	durationParam := r.URL.Query().Get("duration")
 	duration, err := strconv.Atoi(durationParam)
-	result, err := b.Service.GetUsersCached(chaos, duration)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "invalid duration parameter", http.StatusBadRequest)
+		return
+	}
+	chaos := "latency"
+	if active == "0" {
+		chaos = ""
+	}
+	result, err := b.Service.GetUsers(chaos, duration)
+	if err != nil {
+		http.Error(w, "get users failed", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, map[string]interface{}{
+		"data": result,
+	})
+}
+
+func (b *BusinessAPI) GetUsers2(w http.ResponseWriter, r *http.Request) {
+	active := r.URL.Query().Get("mode")
+	durationParam := r.URL.Query().Get("duration")
+	duration, err := strconv.Atoi(durationParam)
+	if err != nil {
+		http.Error(w, "invalid duration parameter", http.StatusBadRequest)
+		return
+	}
+	chaos := "cpu"
+	if active == "0" {
+		chaos = ""
+	}
+	result, err := b.Service.GetUsers(chaos, duration)
+	if err != nil {
+		http.Error(w, "get users failed", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, map[string]interface{}{
+		"data": result,
+	})
+}
+
+func (b *BusinessAPI) GetUsers3(w http.ResponseWriter, r *http.Request) {
+	active := r.URL.Query().Get("mode")
+	durationParam := r.URL.Query().Get("duration")
+	duration, err := strconv.Atoi(durationParam)
+	if err != nil {
+		http.Error(w, "invalid duration parameter", http.StatusBadRequest)
+		return
+	}
+	chaos := "redis_latency"
+	if active == "0" {
+		chaos = ""
+	}
+	result, err := b.Service.GetUsers(chaos, duration)
+	if err != nil {
+		http.Error(w, "get users failed", http.StatusInternalServerError)
 		return
 	}
 

@@ -6,12 +6,14 @@ import (
 
 	"github.com/CloudDetail/apo-sandbox/logging"
 	"github.com/CloudDetail/apo-sandbox/model"
+	toxiproxy "github.com/Shopify/toxiproxy/v2/client"
 	"github.com/google/uuid"
 )
 
 type Store struct {
 	MySQL *MySQLClient
 	Redis *RedisClient
+	Proxy *toxiproxy.Proxy
 }
 
 // QueryUsersFromDB queries users directly from MySQL database

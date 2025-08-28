@@ -15,6 +15,7 @@ import (
 	"github.com/CloudDetail/apo-sandbox/logging"
 	"github.com/CloudDetail/apo-sandbox/service"
 	"github.com/CloudDetail/apo-sandbox/storage"
+	toxiproxy "github.com/Shopify/toxiproxy/v2/client"
 	"github.com/gorilla/mux"
 )
 
@@ -99,12 +100,23 @@ func initStorage() *storage.Store {
 		mysqlClient = &storage.MySQLClient{}
 	}
 
+	client := toxiproxy.NewClient("http://localhost:8474")
+	proxy := client.NewProxy()
+	proxy.Upstream = "localhost:6379"
+	proxy.Name = "redis_proxy"
+	proxyAddr := fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port)
+	proxy.Listen = proxyAddr
+	err = proxy.Save()
+	if err != nil {
+		logging.Error("Failed to populate proxy: %v", err)
+	}
+
 	// 初始化Redis连接
-	redisAddr := fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port)
-	redisClient := storage.NewRedis(redisAddr)
+	redisClient := storage.NewRedis(proxyAddr)
 	store := &storage.Store{
 		MySQL: mysqlClient,
 		Redis: redisClient,
+		Proxy: proxy,
 	}
 
 	logging.Info("%s", "Storage layer initialized")
@@ -114,7 +126,9 @@ func initStorage() *storage.Store {
 func setupRouter(businessAPI *api.BusinessAPI) *mux.Router {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/api/users", businessAPI.GetUsersCached).Methods("GET")
+	router.HandleFunc("/api/users/1", businessAPI.GetUsers1).Methods("GET")
+	router.HandleFunc("/api/users/2", businessAPI.GetUsers2).Methods("GET")
+	router.HandleFunc("/api/users/3", businessAPI.GetUsers3).Methods("GET")
 
 	router.Use(loggingMiddleware)
 
