@@ -1,5 +1,3 @@
-const logger = require('../logging');
-
 class FaultManager {
     constructor() {
         this.faults = new Map();
@@ -7,7 +5,6 @@ class FaultManager {
 
     register(fault) {
         this.faults.set(fault.getName(), fault);
-        logger.info(`Fault registered: ${fault.getName()}`);
     }
 
     async startFault(chaosType, params = {}) {
@@ -18,10 +15,8 @@ class FaultManager {
 
         try {
             await fault.start(params);
-            logger.info(`Fault ${chaosType} started successfully`);
             return true;
         } catch (error) {
-            logger.error(`Failed to start fault ${chaosType}: ${error.message}`);
             throw error;
         }
     }
@@ -34,10 +29,8 @@ class FaultManager {
 
         try {
             await fault.stop();
-            logger.info(`Fault ${chaosType} stopped successfully`);
             return true;
         } catch (error) {
-            logger.error(`Failed to stop fault ${chaosType}: ${error.message}`);
             throw error;
         }
     }
@@ -47,7 +40,6 @@ class FaultManager {
         try {
             await Promise.all(stopPromises);
         } catch (error) {
-            logger.error(`Error stopping all faults: ${error.message}`);
         }
     }
 

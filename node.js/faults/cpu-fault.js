@@ -1,6 +1,5 @@
 const ChaosFault = require('./fault');
 const Config = require('../config');
-const logger = require('../logging');
 
 class CPUFault extends ChaosFault {
     constructor() {
@@ -14,7 +13,6 @@ class CPUFault extends ChaosFault {
 
     async start(params = {}) {
         if (this.active) {
-            logger.info('CPU fault already active');
             return;
         }
 
@@ -26,7 +24,6 @@ class CPUFault extends ChaosFault {
         }
 
         this.active = true;
-        logger.info(`CPU fault started, will consume CPU for ${targetDuration}ms`);
 
         const startTime = Date.now();
         while (Date.now() - startTime < targetDuration) {
@@ -34,13 +31,11 @@ class CPUFault extends ChaosFault {
         }
 
         const actualDuration = Date.now() - startTime;
-        logger.info(`CPU fault completed, consumed ${actualDuration}ms CPU time`);
         this.active = false;
     }
 
     async stop() {
         this.active = false;
-        logger.info('CPU fault stopped');
     }
 
     isActive() {

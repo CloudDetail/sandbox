@@ -79,8 +79,6 @@ async function initFaultManager(redisClient) {
 
     const redisFault = new RedisLatencyFault(redisClient);
     faultManager.register(redisFault);
-
-    logger.info('successfully init fault manager');
 }
 
 function loggingMiddleware(req, res, next) {

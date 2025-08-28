@@ -1,6 +1,5 @@
 const ChaosFault = require('./fault');
 const Config = require('../config');
-const logger = require('../logging');
 
 class RedisLatencyFault extends ChaosFault {
     constructor(redisClient) {
@@ -23,7 +22,6 @@ class RedisLatencyFault extends ChaosFault {
         }
 
         if (this.active && this.delay == delay) {
-            logger.info('Redis fault already active');
             return;
         }
 
@@ -32,13 +30,10 @@ class RedisLatencyFault extends ChaosFault {
                 await this.redisClient.startFault(delay);
                 this.active = true;
                 this.delay = delay;
-                logger.info(`Redis latency fault started with delay: ${delay}ms`);
             } else {
-                logger.warn('Redis client not available, simulating fault behavior');
                 this.active = true;
             }
         } catch (error) {
-            logger.error(`Failed to start redis latency fault: ${error.message}`);
             throw error;
         }
     }
@@ -53,9 +48,7 @@ class RedisLatencyFault extends ChaosFault {
                 await this.redisClient.stopFault();
             }
             this.active = false;
-            logger.info('Redis latency fault stopped');
         } catch (error) {
-            logger.error(`Failed to stop redis latency fault: ${error.message}`);
             throw error;
         }
     }

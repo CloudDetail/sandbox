@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo-sandbox/fault"
-	"github.com/CloudDetail/apo-sandbox/logging"
 	"github.com/CloudDetail/apo-sandbox/model"
 	"github.com/CloudDetail/apo-sandbox/storage"
 )
@@ -28,10 +27,7 @@ func (s *BusinessService) GetUsersCached(chaosType string, duration int) (string
 		if duration > 0 {
 			params["duration"] = duration
 		}
-		err := s.FaultManager.StartFault(chaosType, params)
-		if err != nil {
-			logging.Error("Start fault failed: %v", err)
-		}
+		s.FaultManager.StartFault(chaosType, params)
 	} else {
 		s.FaultManager.StopAllFaults()
 	}

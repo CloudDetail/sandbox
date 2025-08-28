@@ -23,10 +23,22 @@ public class BusinessController {
 
     @GetMapping("/users")
     public ResponseEntity<List<User>> getUsersCached(
-            @RequestParam("chaos") Optional<String> chaos,
-            @RequestParam("duration") Optional<Integer> duration) {
-
-        List<User> users = businessService.getUsersCached(chaos, duration);
+            @RequestParam("mode") Optional<String> mode) {
+        Optional<String> chaos = Optional.empty();
+        switch (mode.orElse("")) {
+            case "1":
+                chaos = Optional.of("latency");
+                break;
+            case "2":
+                chaos = Optional.of("cpu");
+                break;
+            case "3":
+                chaos = Optional.of("redis_latency");
+                break;
+            default:
+                break;
+        }
+        List<User> users = businessService.getUsersCached(chaos, Optional.of(0));
         return ResponseEntity.ok(users);
     }
 }

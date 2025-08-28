@@ -1,5 +1,4 @@
 import time
-import logging
 import threading
 
 from faults.fault_manager import ChaosFault
@@ -36,7 +35,6 @@ class CPUFault(ChaosFault):
 
         with self._lock:
             if self._active:
-                logging.info("CPU fault already active.")
                 return
             self._active = True
             self._stop_event.clear()
@@ -47,7 +45,6 @@ class CPUFault(ChaosFault):
         target_duration_s = target_duration / 1000.0
 
         start_time = time.time()
-        logging.info("Starting CPU fault for %s milliseconds.", target_duration)
 
         iteration_count = 0
         while (time.time() - start_time) < target_duration_s and not self._stop_event.is_set():
@@ -60,12 +57,6 @@ class CPUFault(ChaosFault):
         with self._lock:
             self._active = False
 
-        if self._stop_event.is_set():
-            logging.info("CPU fault stopped early after %d iterations in %s CPU time.",
-                        iteration_count, f"{elapsed_time:.2f}s")
-        else:
-            logging.info("CPU fault completed, executed %d iterations in %s CPU time.",
-                        iteration_count, f"{elapsed_time:.2f}s")
         return None
 
     def _cpu_intensive_work(self):
@@ -94,11 +85,9 @@ class CPUFault(ChaosFault):
         """
         with self._lock:
             if not self._active:
-                logging.info("CPU fault not active.")
                 return
             self._stop_event.set()
             self._active = False
-        logging.info("Stopping CPU fault.")
         return None
 
     def is_active(self):

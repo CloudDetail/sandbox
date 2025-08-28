@@ -1,12 +1,10 @@
 # python/faults/redis_fault.py
-import logging
 import threading
 
 from faults.fault_manager import ChaosFault
 from config import load_config
 from storage import RedisClient
 
-logger = logging.getLogger(__name__)
 
 class RedisLatencyFault(ChaosFault):
     def __init__(self, redis_client: RedisClient):
@@ -27,7 +25,6 @@ class RedisLatencyFault(ChaosFault):
     def start(self, params: dict) -> None:
         with self._lock:
             if self._active:
-                logger.info("Redis latency fault already active.")
                 return
 
             config = load_config()
@@ -50,4 +47,3 @@ class RedisLatencyFault(ChaosFault):
 
             self._active = False
             self._fault_delay = 0
-            logger.info("Redis latency fault stopped.")

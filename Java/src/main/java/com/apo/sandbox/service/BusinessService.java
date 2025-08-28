@@ -34,7 +34,6 @@ public class BusinessService {
             try {
                 faultManager.startFault(chaosType.get(), params);
             } catch (Exception e) {
-                log.error("Start fault failed: {}", e.getMessage());
             }
         } else {
             faultManager.stopAllFaults();

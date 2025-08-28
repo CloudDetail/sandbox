@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo-sandbox/config"
-	"github.com/CloudDetail/apo-sandbox/logging"
 )
 
 type cpuFault struct {
@@ -30,7 +29,6 @@ func (c *cpuFault) Start(params map[string]interface{}) error {
 		_ = fibonacci(38)
 	}
 
-	logging.Info("CPU fault started, consumed %s CPU time.", time.Since(start).String())
 	return nil
 }
 

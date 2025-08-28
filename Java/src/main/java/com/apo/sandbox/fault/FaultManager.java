@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class FaultManager {
-    private static final Logger log = LoggerFactory.getLogger(FaultManager.class);
     private final Map<String, Fault> faults;
 
     public FaultManager(List<Fault> faultList) {
@@ -24,19 +23,16 @@ public class FaultManager {
         Fault fault = faults.get(faultType);
         if (fault != null) {
             fault.start(params);
-        } else {
-            log.error("Unknown fault type: {}", faultType);
         }
     }
 
     public void stopAllFaults() {
-        log.info("Stopping all active faults...");
         faults.values().forEach(fault -> {
             if (fault.isActive()) {
                 try {
                     fault.stop();
                 } catch (Exception e) {
-                    log.error("Failed to stop fault '{}': {}", fault.getName(), e.getMessage());
+
                 }
             }
         });

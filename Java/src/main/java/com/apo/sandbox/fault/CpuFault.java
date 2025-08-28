@@ -9,7 +9,6 @@ import java.util.Map;
 
 @Component
 public class CpuFault implements Fault {
-    private static final Logger log = LoggerFactory.getLogger(CpuFault.class);
     private final AppProperties appProperties;
 
     public CpuFault(AppProperties appProperties) {
@@ -27,14 +26,10 @@ public class CpuFault implements Fault {
         long targetDurationNanos = durationMs * 1_000_000L;
 
         long startTime = System.nanoTime();
-        log.info("Starting CPU fault for {}ms.", durationMs);
 
         while (System.nanoTime() - startTime < targetDurationNanos) {
             fibonacci(18); // A reasonably expensive computation
         }
-
-        long actualDurationMs = (System.nanoTime() - startTime) / 1_000_000L;
-        log.info("CPU fault finished. Consumed {}ms of CPU time.", actualDurationMs);
     }
 
     private int fibonacci(int n) {

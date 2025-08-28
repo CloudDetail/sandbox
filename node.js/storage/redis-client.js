@@ -122,10 +122,8 @@ class RedisClient {
 
         try {
             const result = await this.client.sendCommand(['FAULT.START', delay.toString()]);
-            logger.info(`Start redis latency ${delay}.`);
             return result;
         } catch (error) {
-            logger.error(`Failed to send fault command to Redis proxy: ${error.message}`);
             throw error;
         }
     }
@@ -137,10 +135,8 @@ class RedisClient {
 
         try {
             const result = await this.client.sendCommand(['FAULT.STOP']);
-            logger.info('Redis latency stopped');
             return result;
         } catch (error) {
-            logger.error(`Failed to send stop fault command to Redis proxy: ${error.message}`);
             throw error;
         }
     }

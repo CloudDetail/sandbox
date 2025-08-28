@@ -1,6 +1,5 @@
 const ChaosFault = require('./fault');
 const Config = require('../config');
-const logger = require('../logging');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 
@@ -27,7 +26,6 @@ class LatencyFault extends ChaosFault {
         }
 
         if (this.active) {
-            logger.info('Latency fault already active');
             return
         }
 
@@ -37,15 +35,10 @@ class LatencyFault extends ChaosFault {
             const cmd = `tc qdisc add dev ${this.iface} root netem delay ${delayMs}ms`;
             const { stdout, stderr } = await execAsync(cmd);
 
-            if (stderr && !stderr.includes('RTNETLINK answers: File exists')) {
-                logger.warn(`TC command warning: ${stderr}`);
-            }
 
             this.delay = delayMs;
             this.active = true;
-            logger.info(`Successfully added ${delayMs}ms delay on ${this.iface}`);
         } catch (error) {
-            logger.error(`Failed to add delay: ${error.message}`);
             throw error;
         }
     }
@@ -58,9 +51,7 @@ class LatencyFault extends ChaosFault {
         try {
             await this.clearTC();
             this.active = false;
-            logger.info('Latency fault stopped');
         } catch (error) {
-            logger.error(`Failed to stop latency fault: ${error.message}`);
             throw error;
         }
     }
@@ -72,12 +63,10 @@ class LatencyFault extends ChaosFault {
 
             if (stderr && !stderr.includes('No such file or directory') &&
                 !stderr.includes('No qdisc')) {
-                logger.warn(`TC clear warning: ${stderr}`);
             }
         } catch (error) {
             if (!error.message.includes('No such file or directory') &&
                 !error.message.includes('No qdisc')) {
-                logger.warn(`TC clear error: ${error.message}`);
             }
         }
     }

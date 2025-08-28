@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/CloudDetail/apo-sandbox/logging"
 	"github.com/CloudDetail/apo-sandbox/model"
 	"github.com/go-redis/redis/v8"
 )
@@ -74,19 +73,15 @@ func (c *RedisClient) GetUserIDs() ([]string, error) {
 func (c *RedisClient) StartFault(delay int) error {
 	cmd := c.Client.Do(context.Background(), "FAULT.START", delay)
 	if cmd.Err() != nil {
-		logging.Error("Failed to send fault command to Redis proxy: %v", cmd.Err())
 		return cmd.Err()
 	}
-	logging.Info("Start redis latency %d.", delay)
 	return nil
 }
 
 func (c *RedisClient) StopFault() error {
 	cmd := c.Client.Do(context.Background(), "FAULT.STOP")
 	if cmd.Err() != nil {
-		logging.Error("Failed to send stop fault command to Redis proxy: %v", cmd.Err())
 		return cmd.Err()
 	}
-	logging.Info("Redis latency stopped")
 	return nil
 }

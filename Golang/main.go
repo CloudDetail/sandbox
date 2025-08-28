@@ -73,8 +73,6 @@ func initFaultManager(redisClient *storage.RedisClient) {
 	faultManager.Register(latencyFault)
 	redisFault := fault.NewRedisLatencyFault(redisClient)
 	faultManager.Register(redisFault)
-
-	logging.Info("%s", "Fault manager initialized")
 }
 
 // 初始化存储层

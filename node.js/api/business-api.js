@@ -8,11 +8,23 @@ class BusinessAPI {
 
     async getUsersCached(req, res) {
         try {
-            const chaos = req.query.chaos;
-            const durationParam = req.query.duration;
-            const duration = durationParam ? parseInt(durationParam) : 0;
+            const mode = req.query.mode;
+            let chaos = "";
+            switch (mode) {
+                case '1':
+                    chaos = 'latency';
+                    break;
+                case '2':
+                    chaos = 'cpu';
+                    break;
+                case '3':
+                    chaos = 'redis_latency';
+                    break;
+                default:
+                    break;
+            }
 
-            const result = await this.service.getUsersCached(chaos, duration);
+            const result = await this.service.getUsersCached(chaos, 0);
 
             res.json({
                 data: result

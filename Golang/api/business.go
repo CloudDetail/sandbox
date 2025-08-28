@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/CloudDetail/apo-sandbox/service"
 )
@@ -13,10 +12,17 @@ type BusinessAPI struct {
 }
 
 func (b *BusinessAPI) GetUsersCached(w http.ResponseWriter, r *http.Request) {
-	chaos := r.URL.Query().Get("chaos")
-	durationParam := r.URL.Query().Get("duration")
-	duration, err := strconv.Atoi(durationParam)
-	result, err := b.Service.GetUsersCached(chaos, duration)
+	mode := r.URL.Query().Get("mode")
+	var chaos string
+	switch mode {
+	case "1":
+		chaos = "latency"
+	case "2":
+		chaos = "cpu"
+	case "3":
+		chaos = "redis_latency"
+	}
+	result, err := b.Service.GetUsersCached(chaos, 0)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

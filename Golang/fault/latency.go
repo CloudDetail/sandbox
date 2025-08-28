@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/CloudDetail/apo-sandbox/config"
-	"github.com/CloudDetail/apo-sandbox/logging"
 )
 
 type LatencyFault struct {
@@ -45,7 +44,6 @@ func (l *LatencyFault) Start(params map[string]interface{}) error {
 
 	l.delay = delayMs
 	l.active = true
-	logging.Info("Successfully add %dmd delay on %s", delayMs, l.iface)
 	return nil
 }
 

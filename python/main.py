@@ -49,7 +49,6 @@ def create_app():
     fault_manager.register(CPUFault())
     fault_manager.register(LatencyFault())
     fault_manager.register(RedisLatencyFault(redis_client))
-    logger.info("Fault manager initialized and faults registered.")
 
     # 初始化业务服务
     business_service = BusinessService(store, fault_manager)

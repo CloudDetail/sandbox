@@ -28,9 +28,7 @@ class MySQLClient:
                 write_timeout=self.config.write_timeout.total_seconds()
             )
             self.init_schema()
-            logger.info("Successfully connected to MySQL and initialized schema.")
         except Exception as e:
-            logger.warning(f"Failed to connect to MySQL: {e}. Using mock MySQL client.")
             self.db = None # Use mock behavior if connection fails
 
     def init_schema(self):
@@ -47,7 +45,6 @@ class MySQLClient:
             );
             """
             cursor.execute(create_user_table_sql)
-            logger.info("Users table checked/created successfully.")
 
             # Create orders table
             create_order_table_sql = """
@@ -148,23 +145,20 @@ class RedisClient:
 
     def start_fault(self, delay: int):
         if not self.client:
-            logger.warning("Redis client is not available. Cannot start fault.")
+            logger.warning("Redis client is not available.")
             return
         try:
             self.client.execute_command("FAULT.START", delay)
-            logger.info(f"Redis latency fault started with delay: {delay}ms")
         except Exception as e:
-            logger.error(f"Failed to send fault command to Redis proxy: {e}")
+            return
 
     def stop_fault(self):
         if not self.client:
-            logger.warning("Redis client is not available. Cannot stop fault.")
             return
         try:
             self.client.execute_command("FAULT.STOP")
-            logger.info("Redis latency fault stopped.")
         except Exception as e:
-            logger.error(f"Failed to send stop fault command to Redis proxy: {e}")
+            return
 
 class Store:
     def __init__(self, mysql_client: MySQLClient, redis_client: RedisClient):
@@ -173,7 +167,6 @@ class Store:
 
     def query_users_cached(self):
         if not self.redis or not self.redis.client:
-            logger.info("Redis client is not available or not connected. Simulating HTTP operation to fetch users.")
             time.sleep(0.01) # Simulate a network delay for HTTP operation
             users = []
             for i in range(10):
@@ -183,7 +176,6 @@ class Store:
                     email=f"mock_http{i+1}@example.com"
                 )
                 users.append(user)
-            logger.info("Successfully simulated HTTP operation for 10 users.")
             return users, None
 
         user_ids = self.redis.get_user_ids()
@@ -194,14 +186,11 @@ class Store:
                 if user:
                     users.append(user)
                 else:
-                    logger.warning(f"Failed to get user {user_id} from Redis. Re-fetching from mock data.")
                     users = [] # Clear incomplete list to re-fetch
                     break
             if users:
-                logger.info("All users retrieved from Redis cache by individual IDs.")
                 return users, None
 
-        logger.info("Users not in Redis, mocking 10 users and caching them.")
         users = []
         new_user_ids = []
         for i in range(10):
@@ -217,13 +206,11 @@ class Store:
 
         self.redis.set_user_ids(new_user_ids)
 
-        logger.info("Mocked 10 users and cached in Redis (individual users and IDs).")
         return users, None
 
     def query_or_create_users(self):
         # Check if MySQL is initialized
         if not self.mysql or not self.mysql.db:
-            logger.info("MySQL is not initialized. Returning 10 mock users.")
             users = []
             for i in range(10):
                 user = User(
@@ -235,16 +222,13 @@ class Store:
             return users, None
 
         # MySQL is initialized, query for users
-        logger.info("MySQL is initialized. Querying users from database.")
         users = self.mysql.query("SELECT id, name, email FROM users")
 
         if users:
-            logger.info(f"Found {len(users)} users in database.")
             # Convert database results to User objects
             user_objects = [User(id=user['id'], name=user['name'], email=user['email']) for user in users]
             return user_objects, None
         else:
-            logger.info("No users found in database. Creating 10 mock users and writing to database.")
             users = []
             for i in range(10):
                 user = User(
@@ -260,5 +244,4 @@ class Store:
                     user.id, user.name, user.email
                 )
 
-            logger.info("Successfully inserted 10 mock users into database.")
             return users, None

@@ -31,26 +31,22 @@ class Manager:
         with self._lock:
             f = self.faults.get(chaos_type)
         if not f:
-            logger.error(f"Fault {chaos_type} not found")
             return
         try:
             # Start fault asynchronously - don't wait for completion
             f.start(params)
-            logger.info(f"Fault {chaos_type} started successfully.")
         except Exception as e:
-            logger.error(f"Failed to start fault {chaos_type}: {e}")
+            return
 
     def stop_fault(self, chaos_type: str) -> None:
         with self._lock:
             f = self.faults.get(chaos_type)
         if not f:
-            logger.warning(f"Fault {chaos_type} not found, cannot stop.")
             return
         try:
             f.stop()
-            logger.info(f"Fault {chaos_type} stopped.")
         except Exception as e:
-            logger.error(f"Failed to stop fault {chaos_type}: {e}")
+            return
 
     def stop_all_faults(self) -> None:
         with self._lock:
@@ -58,7 +54,6 @@ class Manager:
         for f in faults_to_stop:
             if f.is_active():
                 self.stop_fault(f.name())
-        logger.info("All faults stopped.")
 
     def status(self) -> Dict[str, Any]:
         with self._lock:
