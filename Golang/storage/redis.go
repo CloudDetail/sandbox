@@ -14,11 +14,16 @@ type RedisClient struct {
 	Client *redis.Client
 }
 
-func NewRedis(addr string) *RedisClient {
+func NewRedis(addr string) (*RedisClient, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: addr,
 	})
-	return &RedisClient{Client: rdb}
+
+	_, err := rdb.Ping(context.Background()).Result()
+	if err != nil {
+		return nil, err
+	}
+	return &RedisClient{Client: rdb}, nil
 }
 
 func (c *RedisClient) SetUser(user *model.User, expiration time.Duration) error {

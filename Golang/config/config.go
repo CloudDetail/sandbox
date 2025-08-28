@@ -11,27 +11,24 @@ import (
 
 var config *Config
 
-// Config 应用配置结构
 type Config struct {
 	Server   ServerConfig   `json:"server"`
 	Database DatabaseConfig `json:"database"`
 	Faults   FaultsConfig   `json:"faults"`
 }
 
-// ServerConfig 服务器配置
 type ServerConfig struct {
 	Port         string        `json:"port"`
 	ReadTimeout  time.Duration `json:"read_timeout"`
 	WriteTimeout time.Duration `json:"write_timeout"`
 }
 
-// DatabaseConfig 数据库配置
 type DatabaseConfig struct {
 	MySQL MySQLConfig `json:"mysql"`
 	Redis RedisConfig `json:"redis"`
+	Proxy ProxyConfig `json:"proxy"`
 }
 
-// MySQLConfig MySQL配置
 type MySQLConfig struct {
 	Host           string        `json:"host"`
 	Port           int           `json:"port"`
@@ -44,7 +41,6 @@ type MySQLConfig struct {
 	WriteTimeout   time.Duration `json:"write_timeout"`
 }
 
-// RedisConfig Redis配置
 type RedisConfig struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
@@ -52,29 +48,29 @@ type RedisConfig struct {
 	Database int    `json:"database"`
 }
 
-// FaultsConfig 故障配置
+type ProxyConfig struct {
+	Addr       string `json:"addr"`        // toxiproxy server address
+	ListenAddr string `json:"listen_addr"` // toxiproxy redis proxy listen address
+}
+
 type FaultsConfig struct {
 	CPU     CPUFaultConfig     `json:"cpu"`
 	Latency LatencyFaultConfig `json:"latency"`
 	Redis   RedisFaultConfig   `json:"redis"`
 }
 
-// CPUFaultConfig CPU故障配置
 type CPUFaultConfig struct {
 	DefaultDuration int `json:"default_duration"`
 }
 
-// LatencyFaultConfig 延迟故障配置
 type LatencyFaultConfig struct {
 	DefaultDelay int `json:"default_delay"`
 }
 
-// RedisFaultConfig Redis故障配置
 type RedisFaultConfig struct {
 	DefaultDelay int `json:"default_delay"`
 }
 
-// LoadConfig 加载配置
 func LoadConfig() *Config {
 	if config != nil {
 		return config
@@ -106,6 +102,10 @@ func LoadConfig() *Config {
 				Password: getEnv("REDIS_PASSWORD", ""),
 				Database: getEnvInt("REDIS_DATABASE", 0),
 			},
+			Proxy: ProxyConfig{
+				Addr:       getEnv("PROXY_ADDR", "localhost:8474"),
+				ListenAddr: getEnv("PROXY_LISTEN_ADDR", "0.0.0.0:20000"),
+			},
 		},
 		Faults: FaultsConfig{
 			CPU: CPUFaultConfig{
@@ -123,7 +123,6 @@ func LoadConfig() *Config {
 	return config
 }
 
-// 辅助函数：获取环境变量
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -131,7 +130,6 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-// 辅助函数：获取环境变量并转换为整数
 func getEnvInt(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
 		if intVal, err := strconv.Atoi(value); err == nil {
@@ -141,7 +139,6 @@ func getEnvInt(key string, defaultValue int) int {
 	return defaultValue
 }
 
-// 辅助函数：获取环境变量并转换为浮点数
 func getEnvFloat(key string, defaultValue float64) float64 {
 	if value := os.Getenv(key); value != "" {
 		if floatVal, err := strconv.ParseFloat(value, 64); err == nil {
@@ -151,7 +148,6 @@ func getEnvFloat(key string, defaultValue float64) float64 {
 	return defaultValue
 }
 
-// 辅助函数：获取环境变量并转换为时间间隔
 func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
 	if value := os.Getenv(key); value != "" {
 		if duration, err := time.ParseDuration(value); err == nil {

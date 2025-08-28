@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/CloudDetail/apo-sandbox/logging"
 	"github.com/CloudDetail/apo-sandbox/model"
@@ -51,8 +50,8 @@ func (s *Store) QueryUsersFromDB() ([]model.User, error) {
 	return users, nil
 }
 
-// QueryUsersWithDBBackup queries users from database first, if none exist, creates new ones
-func (s *Store) QueryUsersWithDBBackup() ([]model.User, error) {
+// QueryUserFromMySQL queries users from database first, if none exist, creates new ones
+func (s *Store) QueryUserFromMySQL() ([]model.User, error) {
 	// First try to get users from database
 	users, err := s.QueryUsersFromDB()
 	if err != nil {
@@ -84,25 +83,7 @@ func (s *Store) QueryUsersWithDBBackup() ([]model.User, error) {
 	return users, nil
 }
 
-func (s *Store) QueryUsersCached() ([]model.User, error) {
-	// If Redis client is nil, simulate HTTP operation
-	if s.Redis == nil {
-		logging.Info("Redis client is nil. Simulating HTTP operation to fetch users.")
-		// Simulate a network delay for HTTP operation
-		time.Sleep(10 * time.Millisecond)
-		var users []model.User
-		for i := 0; i < 10; i++ {
-			user := model.User{
-				ID:    uuid.New().String(),
-				Name:  fmt.Sprintf("Mock User HTTP %d", i+1),
-				Email: fmt.Sprintf("mock_http%d@example.com", i+1),
-			}
-			users = append(users, user)
-		}
-		logging.Info("Successfully simulated HTTP operation for 10 users.")
-		return users, nil
-	}
-
+func (s *Store) QueryUserFromRedis() ([]model.User, error) {
 	// Try to get user IDs from Redis cache first
 	userIDs, err := s.Redis.GetUserIDs()
 	if err == nil && len(userIDs) > 0 {

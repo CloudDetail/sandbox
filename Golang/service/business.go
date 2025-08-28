@@ -62,8 +62,8 @@ func (s *BusinessService) GetUsers(chaosType string, duration int) (string, erro
 	var users []model.User
 	var err error
 
-	s.Store.QueryUsersCached()
-	users, err = s.Store.QueryUsersWithDBBackup()
+	s.Store.QueryUserFromRedis()
+	users, err = s.Store.QueryUserFromMySQL()
 	if err != nil {
 		return "", err
 	}
@@ -83,6 +83,7 @@ func (s *BusinessService) startCPUFault(duration int) error {
 	}
 
 	start := time.Now()
+	// Perform CPU-intensive operations to simulate CPU delays
 	for time.Since(start) < targetDuration {
 		_ = fibonacci(38)
 	}
@@ -115,7 +116,7 @@ func (s *BusinessService) startLatenceFault(duration int) error {
 	}
 
 	_ = clearTC()
-
+	// Injecting delay faults into the network adapter to simulate network latency
 	cmd := exec.Command("tc", "qdisc", "add", "dev", "eth0", "root", "netem", "delay", fmt.Sprintf("%dms", delayMs))
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("add delay failed: %v, output: %s", err, string(output))
@@ -160,6 +161,7 @@ func (s *BusinessService) startRedisFault(duration int) error {
 			"latency": targetDuration,
 		},
 	)
+	s.RedisActive = true
 	logging.Info("Redis fault started, delay %dms.", targetDuration)
 	return nil
 }

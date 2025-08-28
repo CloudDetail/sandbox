@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/CloudDetail/apo-sandbox/service"
 )
@@ -14,17 +13,11 @@ type BusinessAPI struct {
 
 func (b *BusinessAPI) GetUsers1(w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("mode")
-	durationParam := r.URL.Query().Get("duration")
-	duration, err := strconv.Atoi(durationParam)
-	if err != nil {
-		http.Error(w, "invalid duration parameter", http.StatusBadRequest)
-		return
+	chaos := ""
+	if active == "1" {
+		chaos = "latency"
 	}
-	chaos := "latency"
-	if active == "0" {
-		chaos = ""
-	}
-	result, err := b.Service.GetUsers(chaos, duration)
+	result, err := b.Service.GetUsers(chaos, 0)
 	if err != nil {
 		http.Error(w, "get users failed", http.StatusInternalServerError)
 		return
@@ -37,17 +30,11 @@ func (b *BusinessAPI) GetUsers1(w http.ResponseWriter, r *http.Request) {
 
 func (b *BusinessAPI) GetUsers2(w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("mode")
-	durationParam := r.URL.Query().Get("duration")
-	duration, err := strconv.Atoi(durationParam)
-	if err != nil {
-		http.Error(w, "invalid duration parameter", http.StatusBadRequest)
-		return
+	chaos := ""
+	if active == "1" {
+		chaos = "cpu"
 	}
-	chaos := "cpu"
-	if active == "0" {
-		chaos = ""
-	}
-	result, err := b.Service.GetUsers(chaos, duration)
+	result, err := b.Service.GetUsers(chaos, 0)
 	if err != nil {
 		http.Error(w, "get users failed", http.StatusInternalServerError)
 		return
@@ -60,17 +47,11 @@ func (b *BusinessAPI) GetUsers2(w http.ResponseWriter, r *http.Request) {
 
 func (b *BusinessAPI) GetUsers3(w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("mode")
-	durationParam := r.URL.Query().Get("duration")
-	duration, err := strconv.Atoi(durationParam)
-	if err != nil {
-		http.Error(w, "invalid duration parameter", http.StatusBadRequest)
-		return
+	chaos := ""
+	if active == "1" {
+		chaos = "redis_latency"
 	}
-	chaos := "redis_latency"
-	if active == "0" {
-		chaos = ""
-	}
-	result, err := b.Service.GetUsers(chaos, duration)
+	result, err := b.Service.GetUsers(chaos, 0)
 	if err != nil {
 		http.Error(w, "get users failed", http.StatusInternalServerError)
 		return

@@ -24,28 +24,31 @@ var (
 )
 
 func main() {
-	// 加载配置
+	// load config
 	appConfig := config.LoadConfig()
 
-	// 设置日志级别
+	// set log level
 	logging.SetLevel(logging.LevelInfo)
 
-	// 初始化存储层
-	store := initStorage()
+	// init storage layer
+	store, err := initStorage()
+	if err != nil {
+		panic(err)
+	}
 
-	// 初始化故障管理器
-	initFaultManager(store.Redis)
+	// init fault manager
+	// initFaultManager(store.Redis)
 
-	// 初始化业务服务
+	// init business service
 	businessService := service.NewBusinessService(store, faultManager)
 
-	// 初始化API层
+	// init business api
 	businessAPI := &api.BusinessAPI{Service: businessService}
 
-	// 设置路由
+	// setup router
 	router := setupRouter(businessAPI)
 
-	// 创建HTTP服务器
+	// setup http server
 	server := &http.Server{
 		Addr:         ":" + appConfig.Server.Port,
 		Handler:      router,
@@ -53,7 +56,7 @@ func main() {
 		WriteTimeout: appConfig.Server.WriteTimeout,
 	}
 
-	// 启动服务器
+	// start http server
 	go func() {
 		logging.Info("Starting server on port %s", appConfig.Server.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -61,11 +64,10 @@ func main() {
 		}
 	}()
 
-	// 等待中断信号
+	// wait for shutdown signal
 	waitForShutdown(server)
 }
 
-// 初始化故障管理器
 func initFaultManager(redisClient *storage.RedisClient) {
 	faultManager = fault.NewManager()
 	cpuFault := fault.NewCPUFault()
@@ -78,10 +80,8 @@ func initFaultManager(redisClient *storage.RedisClient) {
 	logging.Info("%s", "Fault manager initialized")
 }
 
-// 初始化存储层
-func initStorage() *storage.Store {
+func initStorage() (*storage.Store, error) {
 	appConfig := config.LoadConfig()
-	// 初始化MySQL连接
 	mysqlDSN := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&timeout=%s&readTimeout=%s&writeTimeout=%s",
 		appConfig.Database.MySQL.Username,
 		appConfig.Database.MySQL.Password,
@@ -96,31 +96,32 @@ func initStorage() *storage.Store {
 	mysqlClient, err := storage.NewMySQL(mysqlDSN)
 	if err != nil {
 		logging.Warn("Failed to connect to MySQL: %v", err)
-		// 创建模拟客户端
 		mysqlClient = &storage.MySQLClient{}
 	}
 
-	client := toxiproxy.NewClient("http://localhost:8474")
-	proxy := client.NewProxy()
-	proxy.Upstream = "localhost:6379"
-	proxy.Name = "redis_proxy"
-	proxyAddr := fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port)
-	proxy.Listen = proxyAddr
-	err = proxy.Save()
+	client := toxiproxy.NewClient(appConfig.Database.Proxy.Addr)
+	proxies, err := client.Populate([]toxiproxy.Proxy{{
+		Name:     "redis",
+		Listen:   appConfig.Database.Proxy.ListenAddr,
+		Upstream: fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port),
+		Enabled:  true,
+	}})
 	if err != nil {
-		logging.Error("Failed to populate proxy: %v", err)
+		return nil, err
 	}
 
-	// 初始化Redis连接
-	redisClient := storage.NewRedis(proxyAddr)
+	redisClient, err := storage.NewRedis(appConfig.Database.Proxy.ListenAddr)
+	if err != nil {
+		return nil, err
+	}
 	store := &storage.Store{
 		MySQL: mysqlClient,
 		Redis: redisClient,
-		Proxy: proxy,
+		Proxy: proxies[0],
 	}
 
 	logging.Info("%s", "Storage layer initialized")
-	return store
+	return store, nil
 }
 
 func setupRouter(businessAPI *api.BusinessAPI) *mux.Router {
