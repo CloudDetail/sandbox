@@ -15,6 +15,7 @@ class BusinessAPI:
         @business_api_bp.route("/api/users", methods=["GET"])
         def get_users_cached():
             mode = request.args.get("mode")
+            chaos = ""
             if mode == "1":
                 chaos = "latency"
             elif mode == "2":
