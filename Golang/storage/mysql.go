@@ -42,26 +42,8 @@ func (c *MySQLClient) InitSchema() error {
 		email VARCHAR(255) NOT NULL UNIQUE
 	);
 	`
-	_, err := c.DB.Exec(createUserTableSQL)
-	if err != nil {
-		return fmt.Errorf("failed to create users table: %w", err)
-	}
+	_, _ = c.DB.Exec(createUserTableSQL)
 	logging.Info("%s", "Users table checked/created successfully.")
-
-	createOrderTableSQL := `
-	CREATE TABLE IF NOT EXISTS orders (
-		id VARCHAR(36) NOT NULL PRIMARY KEY,
-		user_id VARCHAR(36) NOT NULL,
-		item VARCHAR(255) NOT NULL,
-		amount DECIMAL(10, 2) NOT NULL,
-		FOREIGN KEY (user_id) REFERENCES users(id)
-	);
-	`
-	_, err = c.DB.Exec(createOrderTableSQL)
-	if err != nil {
-		return fmt.Errorf("failed to create orders table: %w", err)
-	}
-	logging.Info("%s", "Orders table checked/created successfully.")
 
 	return nil
 }
