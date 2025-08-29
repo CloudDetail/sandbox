@@ -25,7 +25,6 @@ func (f *RedisLatencyFault) Start(params map[string]interface{}) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.active {
-		logging.Info("Redis fault has started")
 		return nil
 	}
 
@@ -40,7 +39,6 @@ func (f *RedisLatencyFault) Start(params map[string]interface{}) error {
 	}
 
 	f.active = true
-	logging.Info("Redis latency fault started with delay: %dms", defaultDelay)
 	return nil
 }
 

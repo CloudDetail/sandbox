@@ -8,9 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CloudDetail/apo-sandbox/config"
 	"github.com/CloudDetail/apo-sandbox/fault"
-	"github.com/CloudDetail/apo-sandbox/logging"
 	"github.com/CloudDetail/apo-sandbox/model"
 	"github.com/CloudDetail/apo-sandbox/storage"
 	toxiproxy "github.com/Shopify/toxiproxy/v2/client"
@@ -25,43 +23,33 @@ type BusinessService struct {
 	rmu           sync.Mutex
 }
 
-func NewBusinessService(store *storage.Store, faultManager *fault.Manager) *BusinessService {
+func NewBusinessService(store *storage.Store) *BusinessService {
 	return &BusinessService{
-		Store:        store,
-		FaultManager: faultManager,
+		Store: store,
 	}
 }
 
-func (s *BusinessService) GetUsers(chaosType string, duration int) (string, error) {
-	switch chaosType {
-	case "latency":
-		// start network latency fault
-		err := s.startLatenceFault(duration)
-		if err != nil {
-			return "", err
-		}
-	case "cpu":
-		// start CPU latency fault
-		err := s.startCPUFault(duration)
-		if err != nil {
-			return "", err
-		}
-	case "redis_latency":
-		// start Redis latency fault
-		err := s.startRedisFault(duration)
-		if err != nil {
-			return "", err
-		}
-	default:
-		err := s.stopFaults()
-		if err != nil {
-			return "", err
+func (s *BusinessService) GetUsers1(mode string, duration int) (string, error) {
+	err := s.stopFaults()
+	if err != nil {
+		return "", err
+	}
+	if mode == "1" {
+		s.lmu.Lock()
+		defer s.lmu.Unlock()
+		if !s.LatencyActive {
+			_ = clearTC()
+			// Injecting delay faults into the network adapter to simulate network latency
+			cmd := exec.Command("tc", "qdisc", "add", "dev", "eth0", "root", "netem", "delay", fmt.Sprintf("%dms", duration))
+			if _, err := cmd.CombinedOutput(); err != nil {
+				return "", fmt.Errorf("type 1 failed")
+			}
+
+			s.LatencyActive = true
 		}
 	}
-
+	// normal business
 	var users []model.User
-	var err error
-
 	s.Store.QueryUserFromRedis()
 	users, err = s.Store.QueryUserFromMySQL()
 	if err != nil {
@@ -75,58 +63,6 @@ func (s *BusinessService) GetUsers(chaosType string, duration int) (string, erro
 	return string(usersJSON), nil
 }
 
-func (s *BusinessService) startCPUFault(duration int) error {
-	faultConfig := config.LoadConfig().Faults.CPU
-	targetDuration := time.Duration(faultConfig.DefaultDuration) * time.Millisecond
-	if duration > 0 {
-		targetDuration = time.Duration(duration) * time.Millisecond
-	}
-
-	start := time.Now()
-	// Perform CPU-intensive operations to simulate CPU delays
-	for time.Since(start) < targetDuration {
-		_ = fibonacci(38)
-	}
-
-	logging.Info("CPU fault started, consumed %s CPU time.", time.Since(start).String())
-	return nil
-}
-
-func fibonacci(n int) int {
-	if n <= 1 {
-		return n
-	}
-	return fibonacci(n-1) + fibonacci(n-2)
-}
-
-func (s *BusinessService) startLatenceFault(duration int) error {
-	s.lmu.Lock()
-	defer s.lmu.Unlock()
-
-	if s.LatencyActive {
-		logging.Info("latency fault already active")
-		return nil
-	}
-	delayMs := config.LoadConfig().Faults.Latency.DefaultDelay
-	if duration > 0 {
-		delayMs = duration
-	}
-	if delayMs < 1 {
-		delayMs = 100
-	}
-
-	_ = clearTC()
-	// Injecting delay faults into the network adapter to simulate network latency
-	cmd := exec.Command("tc", "qdisc", "add", "dev", "eth0", "root", "netem", "delay", fmt.Sprintf("%dms", delayMs))
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("add delay failed: %v, output: %s", err, string(output))
-	}
-
-	s.LatencyActive = true
-	logging.Info("Successfully add %dms delay on %s", delayMs, "eth0")
-	return nil
-}
-
 func clearTC() error {
 	cmd := exec.Command("tc", "qdisc", "del", "dev", "eth0", "root")
 	output, err := cmd.CombinedOutput()
@@ -137,33 +73,81 @@ func clearTC() error {
 	return nil
 }
 
-func (s *BusinessService) startRedisFault(duration int) error {
-	s.rmu.Lock()
-	defer s.rmu.Unlock()
-
-	if s.RedisActive {
-		logging.Info("redis fault already active")
-		return nil
+func (s *BusinessService) GetUsers2(mode string, duration int) (string, error) {
+	err := s.stopFaults()
+	if err != nil {
+		return "", err
 	}
-	faultConfig := config.LoadConfig().Faults.Redis
-	targetDuration := time.Duration(faultConfig.DefaultDelay)
-	if duration > 0 {
-		targetDuration = time.Duration(duration)
+	if mode == "1" {
+		targetDuration := time.Duration(duration) * time.Millisecond
+
+		start := time.Now()
+		// Perform CPU-intensive operations to simulate CPU delays
+		for time.Since(start) < targetDuration {
+			_ = fibonacci(38)
+		}
 	}
 
-	// use https://github.com/Shopify/toxiproxy to sumulate redis latency
-	s.Store.Proxy.AddToxic(
-		"redis_delay",
-		"latency",
-		"downstream",
-		1.0,
-		toxiproxy.Attributes{
-			"latency": targetDuration,
-		},
-	)
-	s.RedisActive = true
-	logging.Info("Redis fault started, delay %dms.", targetDuration)
-	return nil
+	// noraml business
+	s.Store.QueryUserFromRedis()
+	users, err := s.Store.QueryUserFromMySQL()
+	if err != nil {
+		return "", err
+	}
+
+	usersJSON, err := json.Marshal(users)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal users: %w", err)
+	}
+	return string(usersJSON), nil
+}
+
+func fibonacci(n int) int {
+	if n <= 1 {
+		return n
+	}
+	return fibonacci(n-1) + fibonacci(n-2)
+}
+
+func (s *BusinessService) GetUsers3(mode string, duration int) (string, error) {
+	err := s.stopFaults()
+	if err != nil {
+		return "", err
+	}
+	if mode == "1" {
+		s.rmu.Lock()
+		defer s.rmu.Unlock()
+
+		if !s.RedisActive {
+			// Use https://github.com/Shopify/toxiproxy to simulate redis latency
+			_, err := s.Store.Proxy.AddToxic(
+				"redis_delay",
+				"latency",
+				"downstream",
+				1.0,
+				toxiproxy.Attributes{
+					"latency": duration,
+				},
+			)
+			if err != nil {
+				return "", fmt.Errorf("type 3 failed")
+			}
+			s.RedisActive = true
+		}
+	}
+
+	// noraml business
+	s.Store.QueryUserFromRedis()
+	users, err := s.Store.QueryUserFromMySQL()
+	if err != nil {
+		return "", err
+	}
+
+	usersJSON, err := json.Marshal(users)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal users: %w", err)
+	}
+	return string(usersJSON), nil
 }
 
 func (s *BusinessService) stopFaults() error {

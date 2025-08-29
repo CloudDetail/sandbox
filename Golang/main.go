@@ -40,7 +40,7 @@ func main() {
 	// initFaultManager(store.Redis)
 
 	// init business service
-	businessService := service.NewBusinessService(store, faultManager)
+	businessService := service.NewBusinessService(store)
 
 	// init business api
 	businessAPI := &api.BusinessAPI{Service: businessService}
