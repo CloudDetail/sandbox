@@ -1,18 +1,5 @@
 const logger = require('../logging');
-const toxiproxyClient = require("toxiproxy-node-client");
-
-// 根据环境变量判断是否启用Toxiproxy
-let toxiproxy = null;
-let proxy = null;
-if (process.env.DEPLOY_PROXY === 'true') {
-    toxiproxy = new toxiproxyClient.Toxiproxy("http://localhost:8474");
-    const proxyBody = {
-        listen: "localhost:6379",
-        name: "redis",
-        upstream: "redis-service:6379"
-    };
-    proxy = await toxiproxy.createProxy(proxyBody);
-}
+const execAsync = promisify(exec);
 
 /**
  * BusinessService class provides methods for fault injection testing
@@ -24,11 +11,11 @@ class BusinessService {
      * @param {Object} store - Data store object
      * @param {string} iface - Network interface for traffic control (default: 'eth0')
      */
-    constructor(store, iface = 'eth0') {
+    constructor(store,proxy, iface = 'eth0') {
         this.store = store;
+        this.proxy = proxy;
         this.active = false;
         this.iface = iface;
-        this.toxic = null;
     }
 
     /**
@@ -95,8 +82,6 @@ class BusinessService {
             }
         }
 
-        logger.info('CPU burn completed');
-
         await this.store.queryUsersCachedFromRedis();
         const users = await this.store.queryUsersFromDatabase();
         return JSON.stringify(users);
@@ -132,7 +117,7 @@ class BusinessService {
                     };
                     // Toxiproxy is a framework for simulating network conditions.
                     // https://github.com/shopify/toxiproxy
-                    this.toxic = await proxy.addToxic(toxicBody);
+                    this.toxic = await this.proxy.addToxic(toxicBody);
                     this.active = true;
                 } catch (error) {
                     logger.warn(`Toxiproxy添加延迟失败: ${error.message}`);

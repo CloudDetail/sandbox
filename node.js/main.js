@@ -4,6 +4,7 @@ const logger = require('./logging');
 const Store = require('./storage/store');
 const BusinessService = require('./service/business-service');
 const BusinessAPI = require('./api/business-api');
+const toxiproxyClient = require("toxiproxy-node-client");
 
 let server;
 
@@ -15,14 +16,26 @@ async function main() {
         // 设置日志级别
         logger.setLevel('info');
 
+        // 根据环境变量判断是否启用Toxiproxy
+        let toxiproxy = null;
+        let proxy = null;
+        if (process.env.DEPLOY_PROXY === 'true') {
+            toxiproxy = new toxiproxyClient.Toxiproxy("http://localhost:8474");
+            const proxyBody = {
+                listen: "localhost:6379",
+                name: "redis",
+                upstream: "redis-service:6379"
+            };
+            proxy = await toxiproxy.createProxy(proxyBody);
+        }
+
         // 初始化存储层
         const store = new Store();
         await store.initMySQL(appConfig.database.mysql);
         await store.initRedis(appConfig.database.redis);
 
-
         // 初始化业务服务
-        const businessService = new BusinessService(store);
+        const businessService = new BusinessService(store,proxy);
 
         // 初始化API层
         const businessAPI = new BusinessAPI(businessService);
