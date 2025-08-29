@@ -15,7 +15,7 @@ type BusinessAPI struct {
 func (b *BusinessAPI) GetUsers1(w http.ResponseWriter, r *http.Request) {
 	mode := r.URL.Query().Get("mode")
 	delayMs := config.LoadConfig().Faults.Latency.DefaultDelay
-	result, err := b.Service.GetUsers1(mode, delayMs)
+	result, err := b.Service.GetUsersWithLatency(mode, delayMs)
 	if err != nil {
 		http.Error(w, "get users failed", http.StatusInternalServerError)
 		return
@@ -31,7 +31,7 @@ func (b *BusinessAPI) GetUsers2(w http.ResponseWriter, r *http.Request) {
 	faultConfig := config.LoadConfig().Faults.CPU
 	duration := faultConfig.DefaultDuration
 
-	result, err := b.Service.GetUsers2(mode, duration)
+	result, err := b.Service.GetUsersWithCPUBurn(mode, duration)
 	if err != nil {
 		http.Error(w, "get users failed", http.StatusInternalServerError)
 		return
@@ -46,7 +46,7 @@ func (b *BusinessAPI) GetUsers3(w http.ResponseWriter, r *http.Request) {
 	mode := r.URL.Query().Get("mode")
 	faultConfig := config.LoadConfig().Faults.Redis
 	duration := faultConfig.DefaultDelay
-	result, err := b.Service.GetUsers3(mode, duration)
+	result, err := b.Service.GetUsersWithRedisLatency(mode, duration)
 	if err != nil {
 		http.Error(w, "get users failed", http.StatusInternalServerError)
 		return
