@@ -171,7 +171,7 @@ class Store:
         self.mysql = mysql_client
         self.redis = redis_client
 
-    def query_users_cached(self):
+    def query_users_from_redis(self):
         if not self.redis or not self.redis.client:
             logger.info("Redis client is not available or not connected. Simulating HTTP operation to fetch users.")
             time.sleep(0.01) # Simulate a network delay for HTTP operation
@@ -220,7 +220,7 @@ class Store:
         logger.info("Mocked 10 users and cached in Redis (individual users and IDs).")
         return users, None
 
-    def query_or_create_users(self):
+    def query_or_create_users_from_mysql(self):
         # Check if MySQL is initialized
         if not self.mysql or not self.mysql.db:
             logger.info("MySQL is not initialized. Returning 10 mock users.")

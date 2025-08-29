@@ -32,7 +32,7 @@ class Store {
         }
     }
 
-    async queryUsersCached() {
+    async queryUsersCachedFromRedis() {
         try {
             // 如果Redis客户端为nil，模拟HTTP操作
             if (!this.redis || !this.redis.connected) {
