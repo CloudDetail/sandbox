@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo-sandbox/fault"
-	"github.com/CloudDetail/apo-sandbox/model"
 	"github.com/CloudDetail/apo-sandbox/storage"
 	toxiproxy "github.com/Shopify/toxiproxy/v2/client"
 )
@@ -30,10 +29,6 @@ func NewBusinessService(store *storage.Store) *BusinessService {
 }
 
 func (s *BusinessService) GetUsers1(mode string, duration int) (string, error) {
-	err := s.stopFaults()
-	if err != nil {
-		return "", err
-	}
 	if mode == "1" {
 		s.lmu.Lock()
 		defer s.lmu.Unlock()
@@ -47,11 +42,15 @@ func (s *BusinessService) GetUsers1(mode string, duration int) (string, error) {
 
 			s.LatencyActive = true
 		}
+	} else {
+		err := s.stopFaults()
+		if err != nil {
+			return "", err
+		}
 	}
 	// normal business
-	var users []model.User
 	s.Store.QueryUserFromRedis()
-	users, err = s.Store.QueryUserFromMySQL()
+	users, err := s.Store.QueryUserFromMySQL()
 	if err != nil {
 		return "", err
 	}
@@ -74,10 +73,6 @@ func clearTC() error {
 }
 
 func (s *BusinessService) GetUsers2(mode string, duration int) (string, error) {
-	err := s.stopFaults()
-	if err != nil {
-		return "", err
-	}
 	if mode == "1" {
 		targetDuration := time.Duration(duration) * time.Millisecond
 
@@ -85,6 +80,11 @@ func (s *BusinessService) GetUsers2(mode string, duration int) (string, error) {
 		// Perform CPU-intensive operations to simulate CPU delays
 		for time.Since(start) < targetDuration {
 			_ = fibonacci(38)
+		}
+	} else {
+		err := s.stopFaults()
+		if err != nil {
+			return "", err
 		}
 	}
 
@@ -110,10 +110,6 @@ func fibonacci(n int) int {
 }
 
 func (s *BusinessService) GetUsers3(mode string, duration int) (string, error) {
-	err := s.stopFaults()
-	if err != nil {
-		return "", err
-	}
 	if mode == "1" {
 		s.rmu.Lock()
 		defer s.rmu.Unlock()
@@ -133,6 +129,11 @@ func (s *BusinessService) GetUsers3(mode string, duration int) (string, error) {
 				return "", fmt.Errorf("type 3 failed")
 			}
 			s.RedisActive = true
+		}
+	} else {
+		err := s.stopFaults()
+		if err != nil {
+			return "", err
 		}
 	}
 
