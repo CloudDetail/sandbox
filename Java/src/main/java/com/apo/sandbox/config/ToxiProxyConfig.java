@@ -23,7 +23,7 @@ public class ToxiProxyConfig {
     @Bean
     public Proxy toxiProxy(ToxiproxyClient client) {
         try {
-            String proxyName = "redis_proxy";
+            String proxyName = "redis";
             String redisTarget = appProperties.getRedisHost() + ":" + appProperties.getRedisPort();
 
             try {

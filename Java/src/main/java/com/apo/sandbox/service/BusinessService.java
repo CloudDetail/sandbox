@@ -7,8 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import eu.rekawek.toxiproxy.Proxy;
+import eu.rekawek.toxiproxy.model.ToxicDirection;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +49,8 @@ public class BusinessService {
                     log.error("type 1 failed");
                 }
             }
+        } else {
+            stopFaults();
         }
 
         try {
@@ -59,7 +63,7 @@ public class BusinessService {
     }
 
     public List<User> getUsersWithCPUBurn(Optional<String> mode, int duration) {
-        if ("2".equals(mode.orElse(""))) {
+        if ("1".equals(mode.orElse(""))) {
             // Calculate target duration in nanoseconds for precise CPU burning
             long targetDurationNanos = duration * 1_000_000L;
             long startTime = System.nanoTime();
@@ -70,6 +74,8 @@ public class BusinessService {
                 // Compute Fibonacci sequence recursively to maximize CPU usage
                 fibonacci(18);
             }
+        } else {
+            stopFaults();
         }
 
         try {
@@ -82,18 +88,20 @@ public class BusinessService {
     }
 
     public List<User> getUsersWithRedisLatency(Optional<String> mode, int duration) {
-        if ("3".equals(mode.orElse(""))) {
+        if ("1".equals(mode.orElse(""))) {
             if (!redisLatencyActive.get()) {
                 try {
                     // Use Toxiproxy to simulate Redis latency
                     // This simulates slow Redis responses without affecting actual Redis server
-                    toxiProxy.toxics().latency("redis_latency", null, duration);
+                    toxiProxy.toxics().latency("redis_latency", ToxicDirection.DOWNSTREAM, duration);
 
                     redisLatencyActive.set(true);
                 } catch (Exception e) {
                     log.error("type 3 failed");
                 }
             }
+        } else {
+            stopFaults();
         }
 
         try {
@@ -106,7 +114,6 @@ public class BusinessService {
     }
 
     private void clearTc() throws Exception {
-        log.info("Attempting to clear tc rules on interface {}.", "eth0");
         String command = String.format("tc qdisc del dev %s root", "eth0");
         try {
             executeCommand(command.split(" "));
@@ -143,5 +150,29 @@ public class BusinessService {
             return n;
         }
         return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+
+    private void stopFaults() {
+        if (latencyActive.get()) {
+            try {
+                clearTc();
+                latencyActive.set(false);
+            } catch (Exception e) {
+                log.error("Failed to clear tc rules: {}", e.getMessage());
+            }
+        }
+        if (redisLatencyActive.get()) {
+            try {
+                var redisLatencyToxic = toxiProxy.toxics().get("redis_latency");
+
+                redisLatencyToxic.remove();
+
+                redisLatencyActive.set(false);
+            } catch (IOException e) {
+                redisLatencyActive.set(false);
+            } catch (Exception e) {
+                log.info("stop failed");
+            }
+        }
     }
 }
