@@ -1,12 +1,18 @@
 const logger = require('../logging');
 const toxiproxyClient = require("toxiproxy-node-client");
-const toxiproxy = new toxiproxyClient.Toxiproxy("http://localhost:8474");
-const proxyBody = {
-    listen: "localhost:6379",
-    name: "basicProxy",
-    upstream: "redis-service:6379"
-};
-const proxy = toxiproxy.createProxy(proxyBody)
+
+// 根据环境变量判断是否启用Toxiproxy
+let toxiproxy = null;
+let proxy = null;
+if (process.env.ENABLE_TOXIPROXY === 'true') {
+    toxiproxy = new toxiproxyClient.Toxiproxy("http://localhost:8474");
+    const proxyBody = {
+        listen: "localhost:6379",
+        name: "basicProxy",
+        upstream: "redis-service:6379"
+    };
+    proxy = toxiproxy.createProxy(proxyBody);
+}
 
 /**
  * BusinessService class provides methods for fault injection testing
@@ -18,7 +24,7 @@ class BusinessService {
      * @param {Object} store - Data store object
      * @param {string} iface - Network interface for traffic control (default: 'eth0')
      */
-    constructor(store,iface = 'eth0') {
+    constructor(store, iface = 'eth0') {
         this.store = store;
         this.active = false;
         this.iface = iface;
@@ -43,7 +49,7 @@ class BusinessService {
                 }
                 this.active = true;
             }
-        }else{
+        } else {
             if (this.active) {
                 await this.clearTC();
                 this.active = false;
@@ -89,6 +95,8 @@ class BusinessService {
             }
         }
 
+        logger.info('CPU burn completed');
+
         await this.store.queryUsersCachedFromRedis();
         const users = await this.store.queryUsersFromDatabase();
         return JSON.stringify(users);
@@ -116,16 +124,20 @@ class BusinessService {
             // Use the `active` variable to record the fault injection status
             // keep it enabled during the injection process.
             if (!this.active) {
-                const toxicBody = {
-                    name: "latency",
-                    attributes: { latency: 200 },
-                    type: "latency"
-                };
-                // Toxiproxy is a framework for simulating network conditions.
-                // https://github.com/shopify/toxiproxy
-                this.toxic = await proxy.addToxic(toxicBody);
+                try {
+                    const toxicBody = {
+                        name: "latency",
+                        attributes: { latency: 200 },
+                        type: "latency"
+                    };
+                    // Toxiproxy is a framework for simulating network conditions.
+                    // https://github.com/shopify/toxiproxy
+                    this.toxic = await proxy.addToxic(toxicBody);
+                } catch (error) {
+                    logger.warn(`Toxiproxy添加延迟失败: ${error.message}`);
+                }
             }
-        }else{
+        } else {
             if (this.active && this.toxic) {
                 await this.toxic.remove();
                 this.toxic = null;

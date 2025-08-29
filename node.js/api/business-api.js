@@ -10,29 +10,21 @@ class BusinessAPI {
         try {
             const mode = parseInt(req.query.mode) || 0;
             const result = await this.service.getUsersWithLatency(mode);
-            res.json({
-                data: result
-            });
+            res.json({data: result});
         } catch (error) {
-            logger.error('API error:', error.message);
-            res.status(500).json({
-                error: error.message
-            });
+            logger.error(`API error: ${error.message}`);
+            res.status(500).json({error: error.message});
         }
     }
 
     async getUsers2(req,res) {
         try {
             const mode = parseInt(req.query.mode) || 0;
-            const result = await this.service.getUsersWithCPUBurn(mode);
-            res.json({
-                data: result
-            });
+            const result = await this.service.getUsersWithCpuBurn(mode);
+            res.json({data: result});
         } catch (error) {
-            logger.error('API error:', error.message);
-            res.status(500).json({
-                error: error.message
-            });
+            logger.error(`API error: ${error.message}`);
+            res.status(500).json({error: error.message});
         }
     }
 
@@ -40,14 +32,10 @@ class BusinessAPI {
         try {
             const mode = parseInt(req.query.mode) || 0;
             const result = await this.service.getUsersWithRedisLatency(mode);
-            res.json({
-                data: result
-            });
+            res.json({data: result});
         } catch (error) {
-            logger.error('API error:', error.message);
-            res.status(500).json({
-                error: error.message
-            });
+            logger.error(`API error: ${error.message}`);
+            res.status(500).json({error: error.message});
         }
     }
 }

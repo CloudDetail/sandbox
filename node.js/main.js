@@ -5,7 +5,6 @@ const Store = require('./storage/store');
 const BusinessService = require('./service/business-service');
 const BusinessAPI = require('./api/business-api');
 
-let faultManager;
 let server;
 
 async function main() {
@@ -21,11 +20,9 @@ async function main() {
         await store.initMySQL(appConfig.database.mysql);
         await store.initRedis(appConfig.database.redis);
 
-        // 初始化故障管理器
-        await initFaultManager(store.redis);
 
         // 初始化业务服务
-        const businessService = new BusinessService(store, faultManager);
+        const businessService = new BusinessService(store);
 
         // 初始化API层
         const businessAPI = new BusinessAPI(businessService);
@@ -47,11 +44,6 @@ async function main() {
             res.json({ status: 'ok', timestamp: new Date().toISOString() });
         });
 
-        // 故障状态
-        app.get('/faults/status', (req, res) => {
-            res.json(faultManager.getStatus());
-        });
-
         // 启动服务器
         server = app.listen(appConfig.server.port, () => {
             logger.info(`server is listening ${appConfig.server.port}`);
@@ -59,7 +51,6 @@ async function main() {
 
         // 优雅关闭
         setupGracefulShutdown();
-
     } catch (error) {
         logger.error('start failed:', error.message);
     }
