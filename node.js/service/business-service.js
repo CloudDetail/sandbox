@@ -30,7 +30,6 @@ class BusinessService {
             // Use the `active` variable to record the fault injection status
             // keep it enabled during the injection process.
             if (!this.active) {
-                await this.clearTC();
                 const cmd = `tc qdisc add dev ${this.iface} root netem delay 200ms`;
                 const { stdout, stderr } = await execAsync(cmd);
                 if (stderr && !stderr.includes('RTNETLINK answers: File exists')) {
