@@ -1,5 +1,6 @@
 FROM golang:1.24-alpine AS builder
 RUN apk add --no-cache iptables iproute2
+RUN wget -O otel https://github.com/alibaba/loongsuite-go-agent/releases/download/v1.0.0/otel-linux-amd64
 
 WORKDIR /app
 
@@ -8,7 +9,6 @@ RUN go mod download
 
 COPY . .
 
-RUN curl -fsSL https://cdn.jsdelivr.net/gh/alibaba/loongsuite-go-agent@main/install.sh | sudo bash
 RUN ./otel go build -o main .
 
 FROM alpine:latest
