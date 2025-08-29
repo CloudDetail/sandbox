@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class AppProperties {
 
     // --- Redis Configuration ---
-    @Value("${REDIS_HOST:localhost}")
+    @Value("${REDIS_HOST:redis-service}")
     private String redisHost;
 
     @Value("${REDIS_PORT:6379}")
@@ -33,7 +33,7 @@ public class AppProperties {
     @Value("${PROXY_ADDR:localhost:8474}")
     private String proxyAddr;
 
-    @Value("${PROXY_LISTEN_ADDR:0.0.0.0:20000}")
+    @Value("${PROXY_LISTEN_ADDR:localhost:6379}")
     private String proxyListenAddr;
 
     @Value("${DEPLOY_PROXY:false}")

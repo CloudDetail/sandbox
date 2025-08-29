@@ -99,14 +99,14 @@ func LoadConfig() *Config {
 				WriteTimeout:   getEnvDuration("MYSQL_WRITE_TIMEOUT", 10*time.Second),
 			},
 			Redis: RedisConfig{
-				Host:     getEnv("REDIS_HOST", "localhost"),
+				Host:     getEnv("REDIS_HOST", "redis-service"),
 				Port:     getEnvInt("REDIS_PORT", 6379),
 				Password: getEnv("REDIS_PASSWORD", ""),
 				Database: getEnvInt("REDIS_DATABASE", 0),
 			},
 			Proxy: ProxyConfig{
 				Addr:       getEnv("PROXY_ADDR", "localhost:8474"),
-				ListenAddr: getEnv("PROXY_LISTEN_ADDR", "0.0.0.0:20000"),
+				ListenAddr: getEnv("PROXY_LISTEN_ADDR", "localhost:6379"),
 			},
 		},
 		Faults: FaultsConfig{
