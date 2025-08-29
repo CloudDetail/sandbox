@@ -29,15 +29,10 @@ public class ToxiProxyConfig {
             String proxyName = "redis";
             String redisTarget = appProperties.getRedisHost() + ":" + appProperties.getRedisPort();
 
-            try {
-                Proxy existingProxy = client.getProxy(proxyName);
-                if (existingProxy != null) {
-                    return existingProxy;
-                }
-            } catch (Exception e) {
-
+            Proxy existingProxy = client.getProxy(proxyName);
+            if (existingProxy != null) {
+                return existingProxy;
             }
-
             return client.createProxy(proxyName, appProperties.getProxyListenAddr(), redisTarget);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create Toxiproxy proxy for Redis", e);

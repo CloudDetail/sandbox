@@ -23,8 +23,6 @@ public class RedisConfig {
 
     @Bean
     public IRedisClient redisClient(AppProperties props) {
-        String proxyHost = props.getProxyListenAddr().split(":")[0];
-        int proxyPort = Integer.parseInt(props.getProxyListenAddr().split(":")[1]);
         try {
             final JedisPoolConfig poolConfig = new JedisPoolConfig();
             poolConfig.setMaxTotal(10);
@@ -34,18 +32,17 @@ public class RedisConfig {
             JedisPool jedisPool;
             String password = props.getRedisPassword();
             if (password != null && !password.isEmpty()) {
-                jedisPool = new JedisPool(poolConfig, proxyHost, proxyPort, 2000, password);
+                jedisPool = new JedisPool(poolConfig, props.getRedisHost(), props.getRedisPort(), 2000, password);
             } else {
-                jedisPool = new JedisPool(poolConfig, proxyHost, proxyPort, 2000);
+                jedisPool = new JedisPool(poolConfig, props.getRedisHost(), props.getRedisPort(), 2000);
             }
-
             // Test connection
             jedisPool.getResource().close();
-            log.info("Successfully connected to Redis at {}:{}.", proxyHost, proxyPort);
+            log.info("Successfully connected to Redis at {}:{}.", props.getRedisHost(), props.getRedisPort());
             return new RedisClient(jedisPool);
         } catch (JedisConnectionException e) {
             log.error("Could not connect to Redis at {}:{}. Using mock client. Error: {}",
-                    proxyHost, proxyPort, e.getMessage());
+                    props.getRedisHost(), props.getRedisPort(), e.getMessage());
             return new MockRedisClient();
         }
     }
