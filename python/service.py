@@ -40,7 +40,7 @@ class BusinessService:
         except requests.RequestException:
             pass  # Ignore errors during proxy creation
 
-    def get_users_cached_1(self, mode: int = 0) -> tuple[str, None]:
+    def get_users_latency(self, mode: int = 0) -> tuple[str, None]:
         """
         Simulate network latency by adding traffic control rules
 
@@ -88,7 +88,7 @@ class BusinessService:
             error_msg = e.stderr.decode().strip()
             logger.debug(f"No existing tc qdisc to delete on {self._iface}: {error_msg}")
 
-    def get_users_cached_2(self, mode: int = 0) -> tuple[str, None]:
+    def get_users_cpu_burn(self, mode: int = 0) -> tuple[str, None]:
         """
         Simulate high CPU usage by performing intensive mathematical calculations
 
@@ -115,7 +115,7 @@ class BusinessService:
             return "", err
         return json.dumps([user.__dict__ for user in users]), None
 
-    def get_users_cached_3(self, mode: int = 0) -> tuple[str, None]:
+    def get_users_redis_latency(self, mode: int = 0) -> tuple[str, None]:
         """
         Simulate Redis latency using Toxiproxy
 

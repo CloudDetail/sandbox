@@ -6,14 +6,40 @@ class BusinessAPI {
         this.service = service;
     }
 
-    async getUsersCached(req, res) {
+    async getUsers1(req,res) {
         try {
-            const chaos = req.query.chaos;
-            const durationParam = req.query.duration;
-            const duration = durationParam ? parseInt(durationParam) : 0;
+            const mode = parseInt(req.query.mode) || 0;
+            const result = await this.service.getUsersWithLatency(mode);
+            res.json({
+                data: result
+            });
+        } catch (error) {
+            logger.error('API error:', error.message);
+            res.status(500).json({
+                error: error.message
+            });
+        }
+    }
 
-            const result = await this.service.getUsersCached(chaos, duration);
+    async getUsers2(req,res) {
+        try {
+            const mode = parseInt(req.query.mode) || 0;
+            const result = await this.service.getUsersWithCPUBurn(mode);
+            res.json({
+                data: result
+            });
+        } catch (error) {
+            logger.error('API error:', error.message);
+            res.status(500).json({
+                error: error.message
+            });
+        }
+    }
 
+    async getUsers3(req,res) {
+        try {
+            const mode = parseInt(req.query.mode) || 0;
+            const result = await this.service.getUsersWithRedisLatency(mode);
             res.json({
                 data: result
             });

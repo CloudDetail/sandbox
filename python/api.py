@@ -12,24 +12,45 @@ class BusinessAPI:
         self.service = service
 
     def register_routes(self):
-        @business_api_bp.route("/api/users", methods=["GET"])
-        def get_users_cached():
-            chaos = request.args.get("chaos")
-            duration_param = request.args.get("duration")
-            duration = 0
+        @business_api_bp.route("/api/users/1", methods=["GET"])
+        def get_users_1():
+            mode_str = request.args.get("mode", "0")
+            try:
+                mode = int(mode_str)
+            except ValueError:
+                mode = 0  # Default to 0 if conversion fails
 
-            if duration_param:
-                try:
-                    duration = int(duration_param)
-                except ValueError:
-                    logger.error(f"Invalid duration parameter: {duration_param}")
-                    return jsonify({"error": "Invalid duration parameter"}), 400
+            result, err = self.service.get_users_cached_latency(mode)
+            if err:
+                logger.error(f"Error in GetUsersCached: {err}")
+                return jsonify({"error": str(err)}), 500
 
-            if chaos and chaos != "none": # Check if chaos is explicitly provided and not "none"
-                result, err = self.service.get_users_cached(chaos, duration)
-            else:
-                result, err = self.service.get_users_cached(None, 0) # Stop all faults if no chaos or "none"
+            return result, 200, {'Content-Type': 'application/json'}
 
+        @business_api_bp.route("/api/users/2", methods=["GET"])
+        def get_users_2():
+            mode_str = request.args.get("mode", "0")
+            try:
+                mode = int(mode_str)
+            except ValueError:
+                mode = 0  # Default to 0 if conversion fails
+
+            result, err = self.service.get_users_cpu_burn(mode)
+            if err:
+                logger.error(f"Error in GetUsersCached: {err}")
+                return jsonify({"error": str(err)}), 500
+
+            return result, 200, {'Content-Type': 'application/json'}
+
+        @business_api_bp.route("/api/users/3", methods=["GET"])
+        def get_users_3():
+            mode_str = request.args.get("mode", "0")
+            try:
+                mode = int(mode_str)
+            except ValueError:
+                mode = 0  # Default to 0 if conversion fails
+
+            result, err = self.service.get_users_redis_latency(mode)
             if err:
                 logger.error(f"Error in GetUsersCached: {err}")
                 return jsonify({"error": str(err)}), 500

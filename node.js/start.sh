@@ -26,4 +26,4 @@ fi
 
 # 启动应用
 echo "启动应用..."
-npm start
+npm run start:otel

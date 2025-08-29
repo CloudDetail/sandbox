@@ -1,10 +1,6 @@
 const express = require('express');
 const Config = require('./config');
 const logger = require('./logging');
-const FaultManager = require('./faults/fault-manager');
-const CPUFault = require('./faults/cpu-fault');
-const LatencyFault = require('./faults/latency-fault');
-const RedisLatencyFault = require('./faults/redis-fault');
 const Store = require('./storage/store');
 const BusinessService = require('./service/business-service');
 const BusinessAPI = require('./api/business-api');
@@ -42,7 +38,9 @@ async function main() {
         app.use(loggingMiddleware);
 
         // 路由
-        app.get('/api/users', (req, res) => businessAPI.getUsersCached(req, res));
+        app.get('/api/users/1', (req, res) => businessAPI.getUsers1(req, res));
+        app.get('/api/users/2', (req, res) => businessAPI.getUsers2(req, res));
+        app.get('/api/users/3', (req, res) => businessAPI.getUsers3(req, res));
 
         // 健康检查
         app.get('/health', (req, res) => {
@@ -67,22 +65,6 @@ async function main() {
     }
 }
 
-async function initFaultManager(redisClient) {
-    faultManager = new FaultManager();
-
-    // 注册故障类型
-    const cpuFault = new CPUFault();
-    faultManager.register(cpuFault);
-
-    const latencyFault = new LatencyFault('eth0');
-    faultManager.register(latencyFault);
-
-    const redisFault = new RedisLatencyFault(redisClient);
-    faultManager.register(redisFault);
-
-    logger.info('successfully init fault manager');
-}
-
 function loggingMiddleware(req, res, next) {
     const start = Date.now();
 
@@ -99,11 +81,6 @@ function loggingMiddleware(req, res, next) {
 function setupGracefulShutdown() {
     const shutdown = async (signal) => {
         logger.info(`close signal: ${signal}`);
-
-        if (faultManager) {
-            await faultManager.stopAllFaults();
-            logger.info('all faults stopped');
-        }
 
         if (server) {
             server.close(() => {

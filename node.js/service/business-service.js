@@ -30,7 +30,7 @@ class BusinessService {
      * @param {number} mode - 1 to enable latency, 0 to disable
      * @returns {Promise<string>} JSON stringified users data
      */
-    async getUserWithLatency(mode) {
+    async getUsersWithLatency(mode) {
         if (mode == 1) {
             // Use the `active` variable to record the fault injection status
             // keep it enabled during the injection process.

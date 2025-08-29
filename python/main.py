@@ -57,7 +57,7 @@ def create_app():
     # 先初始化API层并注册路由到Blueprint
     business_api = BusinessAPI(business_service)
     business_api.register_routes()
-    
+
     # 然后注册Blueprint到Flask应用
     app.register_blueprint(business_api_bp)
 

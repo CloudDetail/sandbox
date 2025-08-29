@@ -4,7 +4,8 @@
     "description": "Node.js version of APO Sandbox with fault injection capabilities",
     "main": "main.js",
     "scripts": {
-        "start": "node --require @opentelemetry/auto-instrumentations-node/register main.js",
+        "start": "node main.js",
+        "start:otel": "node --require @opentelemetry/auto-instrumentations-node/register main.js",
         "dev": "nodemon main.js"
     },
     "dependencies": {
@@ -14,7 +15,7 @@
         "dotenv": "^16.3.1",
         "winston": "^3.11.0",
         "uuid": "^9.0.1",
-        "toxiproxy-node-client": "^1.0.0"
+        "toxiproxy-node-client": "^4.0.0"
     },
     "devDependencies": {
         "nodemon": "^3.0.2"
