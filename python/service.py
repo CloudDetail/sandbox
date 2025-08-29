@@ -29,17 +29,6 @@ class BusinessService:
         self._iface = iface
         self.store = store
 
-        proxy_json = {
-            "name": "basicProxy",
-            "listen": "localhost:6379",
-            "upstream": "redis-service:6379"
-        }
-        # Ignore error if proxy doesn't exist
-        try:
-            requests.post("http://localhost:8474/proxies", json=proxy_json)
-        except requests.RequestException:
-            pass  # Ignore errors during proxy creation
-
     def get_users_latency(self, mode: int = 0) -> tuple[str, None]:
         """
         Simulate network latency by adding traffic control rules
@@ -132,10 +121,11 @@ class BusinessService:
                 # Toxiproxy is a framework for simulating network conditions.
                 # https://github.com/shopify/toxiproxy
                 try:
-                    requests.post("http://localhost:8474/proxies/basicProxy/toxics", json={
+                    requests.post("http://localhost:8474/proxies/redis/toxics", json={
                         "name": "latency",
                         "type": "latency",
-                        "stream": "all",
+                        "stream": "downstream",
+                        "toxicity": 1.0,
                         "attributes": {"latency": 200}
                     })
                     self._active = True
@@ -144,7 +134,7 @@ class BusinessService:
         else:
             if self._active:
                 try:
-                    requests.delete("http://localhost:8474/proxies/basicProxy/toxics/latency")
+                    requests.delete("http://localhost:8474/proxies/redis/toxics/latency")
                     self._active = False
                 except requests.RequestException as e:
                     logger.warning(f"Failed to remove Redis latency: {e}")

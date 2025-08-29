@@ -4,11 +4,11 @@ const toxiproxyClient = require("toxiproxy-node-client");
 // 根据环境变量判断是否启用Toxiproxy
 let toxiproxy = null;
 let proxy = null;
-if (process.env.ENABLE_TOXIPROXY === 'true') {
+if (process.env.DEPLOY_PROXY === 'true') {
     toxiproxy = new toxiproxyClient.Toxiproxy("http://localhost:8474");
     const proxyBody = {
         listen: "localhost:6379",
-        name: "basicProxy",
+        name: "redis",
         upstream: "redis-service:6379"
     };
     proxy = toxiproxy.createProxy(proxyBody);

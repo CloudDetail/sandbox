@@ -12,17 +12,20 @@ public class ToxiProxyConfig {
     private AppProperties appProperties;
 
     @Bean
-    public ToxiproxyClient toxiproxyClient() {
-        String addr = appProperties.getProxyAddr();
-        String[] parts = addr.split(":");
-        String host = parts[0];
-        int port = Integer.parseInt(parts[1]);
-        return new ToxiproxyClient(host, port);
-    }
+    public Proxy toxiProxy() {
+        if (!appProperties.getDeployProxy()) {
+            return null;
+        }
 
-    @Bean
-    public Proxy toxiProxy(ToxiproxyClient client) {
         try {
+            if (!appProperties.getDeployProxy()) {
+                return null;
+            }
+            String addr = appProperties.getProxyAddr();
+            String[] parts = addr.split(":");
+            String host = parts[0];
+            int port = Integer.parseInt(parts[1]);
+            ToxiproxyClient client = new ToxiproxyClient(host, port);
             String proxyName = "redis";
             String redisTarget = appProperties.getRedisHost() + ":" + appProperties.getRedisPort();
 

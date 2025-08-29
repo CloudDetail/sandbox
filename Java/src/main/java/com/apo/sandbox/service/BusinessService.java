@@ -5,12 +5,11 @@ import com.apo.sandbox.fault.FaultManager;
 import com.apo.sandbox.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import eu.rekawek.toxiproxy.Proxy;
-import eu.rekawek.toxiproxy.model.ToxicDirection;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
@@ -24,11 +23,11 @@ public class BusinessService {
     private final AtomicBoolean latencyActive = new AtomicBoolean(false);
     private final AtomicBoolean redisLatencyActive = new AtomicBoolean(false);
 
-    public final Proxy toxiProxy;
+    @Autowired(required = false)
+    private Proxy toxiProxy;
 
-    public BusinessService(FaultManager faultManager, Store store, Proxy toxiProxy) {
+    public BusinessService(FaultManager faultManager, Store store) {
         this.store = store;
-        this.toxiProxy = toxiProxy;
     }
 
     public List<User> getUsersWithLatency(Optional<String> mode, int duration) {
@@ -43,14 +42,12 @@ public class BusinessService {
                     // This adds a delay to all packets on the eth0 interface
                     String command = String.format("tc qdisc add dev %s root netem delay %dms", "eth0", duration);
                     executeCommand(command.split(" "));
-
-                    latencyActive.set(true);
                 } catch (Exception e) {
                     log.error("type 1 failed");
                 }
+
+                latencyActive.set(true);
             }
-        } else {
-            stopFaults();
         }
 
         try {
@@ -74,8 +71,6 @@ public class BusinessService {
                 // Compute Fibonacci sequence recursively to maximize CPU usage
                 fibonacci(18);
             }
-        } else {
-            stopFaults();
         }
 
         try {
@@ -93,15 +88,13 @@ public class BusinessService {
                 try {
                     // Use Toxiproxy to simulate Redis latency
                     // This simulates slow Redis responses without affecting actual Redis server
-                    toxiProxy.toxics().latency("redis_latency", ToxicDirection.DOWNSTREAM, duration);
-
-                    redisLatencyActive.set(true);
+                    toxiProxy.toxics().latency("redis_latency", null, duration);
                 } catch (Exception e) {
                     log.error("type 3 failed");
                 }
+
+                redisLatencyActive.set(true);
             }
-        } else {
-            stopFaults();
         }
 
         try {
@@ -114,6 +107,7 @@ public class BusinessService {
     }
 
     private void clearTc() throws Exception {
+        log.info("Attempting to clear tc rules on interface {}.", "eth0");
         String command = String.format("tc qdisc del dev %s root", "eth0");
         try {
             executeCommand(command.split(" "));
@@ -150,29 +144,5 @@ public class BusinessService {
             return n;
         }
         return fibonacci(n - 1) + fibonacci(n - 2);
-    }
-
-    private void stopFaults() {
-        if (latencyActive.get()) {
-            try {
-                clearTc();
-                latencyActive.set(false);
-            } catch (Exception e) {
-                log.error("Failed to clear tc rules: {}", e.getMessage());
-            }
-        }
-        if (redisLatencyActive.get()) {
-            try {
-                var redisLatencyToxic = toxiProxy.toxics().get("redis_latency");
-
-                redisLatencyToxic.remove();
-
-                redisLatencyActive.set(false);
-            } catch (IOException e) {
-                redisLatencyActive.set(false);
-            } catch (Exception e) {
-                log.info("stop failed");
-            }
-        }
     }
 }

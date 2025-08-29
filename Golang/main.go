@@ -69,6 +69,7 @@ func main() {
 }
 
 func initFaultManager(redisClient *storage.RedisClient) {
+
 	faultManager = fault.NewManager()
 	cpuFault := fault.NewCPUFault()
 	faultManager.Register(cpuFault)
@@ -99,26 +100,26 @@ func initStorage() (*storage.Store, error) {
 		mysqlClient = &storage.MySQLClient{}
 	}
 
-	client := toxiproxy.NewClient(appConfig.Database.Proxy.Addr)
-	proxies, err := client.Populate([]toxiproxy.Proxy{{
-		Name:     "redis",
-		Listen:   appConfig.Database.Proxy.ListenAddr,
-		Upstream: fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port),
-		Enabled:  true,
-	}})
-	if err != nil {
-		return nil, err
+	store := &storage.Store{}
+	if appConfig.Server.DeployProxy {
+		client := toxiproxy.NewClient(appConfig.Database.Proxy.Addr)
+		proxies, err := client.Populate([]toxiproxy.Proxy{{
+			Name:     "redis",
+			Listen:   appConfig.Database.Proxy.ListenAddr,
+			Upstream: fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port),
+			Enabled:  true,
+		}})
+		if err != nil {
+			return nil, err
+		}
+		store.Proxy = proxies[0]
 	}
-
 	redisClient, err := storage.NewRedis(appConfig.Database.Proxy.ListenAddr)
 	if err != nil {
 		return nil, err
 	}
-	store := &storage.Store{
-		MySQL: mysqlClient,
-		Redis: redisClient,
-		Proxy: proxies[0],
-	}
+	store.Redis = redisClient
+	store.MySQL = mysqlClient
 
 	logging.Info("%s", "Storage layer initialized")
 	return store, nil

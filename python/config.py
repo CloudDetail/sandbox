@@ -8,6 +8,7 @@ class ServerConfig:
         self.port = os.getenv("PORT", "3500")
         self.read_timeout = timedelta(seconds=int(os.getenv("READ_TIMEOUT_SEC", 30)))
         self.write_timeout = timedelta(seconds=int(os.getenv("WRITE_TIMEOUT_SEC", 30)))
+        self.deploy_proxy = os.getenv("DEPLOY_PROXY", "false") == "true"
 
 class MySQLConfig:
     def __init__(self):

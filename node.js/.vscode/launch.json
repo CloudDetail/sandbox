@@ -13,7 +13,8 @@
                 "REDIS_HOST": "localhost",
                 "REDIS_PORT": "20000",
                 "MYSQL_HOST": "localhost",
-                "MYSQL_PORT": "3306"
+                "MYSQL_PORT": "3306",
+                "DEPLOY_PROXY": "true"
             },
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",

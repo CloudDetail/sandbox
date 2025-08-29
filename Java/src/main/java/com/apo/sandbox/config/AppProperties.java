@@ -36,6 +36,9 @@ public class AppProperties {
     @Value("${PROXY_LISTEN_ADDR:0.0.0.0:20000}")
     private String proxyListenAddr;
 
+    @Value("${DEPLOY_PROXY:false}")
+    private Boolean deployProxy;
+
     // --- Getters ---
     public String getRedisHost() {
         return redisHost;
@@ -71,5 +74,9 @@ public class AppProperties {
 
     public String getProxyListenAddr() {
         return proxyListenAddr;
+    }
+
+    public Boolean getDeployProxy() {
+        return deployProxy;
     }
 }

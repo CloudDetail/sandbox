@@ -21,6 +21,7 @@ type ServerConfig struct {
 	Port         string        `json:"port"`
 	ReadTimeout  time.Duration `json:"read_timeout"`
 	WriteTimeout time.Duration `json:"write_timeout"`
+	DeployProxy  bool          `json:"deploy_proxy"`
 }
 
 type DatabaseConfig struct {
@@ -83,6 +84,7 @@ func LoadConfig() *Config {
 			Port:         getEnv("PORT", "3500"),
 			ReadTimeout:  getEnvDuration("READ_TIMEOUT", 30*time.Second),
 			WriteTimeout: getEnvDuration("WRITE_TIMEOUT", 30*time.Second),
+			DeployProxy:  getEnvBool("DEPLOY_PROXY", false),
 		},
 		Database: DatabaseConfig{
 			MySQL: MySQLConfig{
@@ -152,6 +154,15 @@ func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
 	if value := os.Getenv(key); value != "" {
 		if duration, err := time.ParseDuration(value); err == nil {
 			return duration
+		}
+	}
+	return defaultValue
+}
+
+func getEnvBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		if boolVal, err := strconv.ParseBool(value); err == nil {
+			return boolVal
 		}
 	}
 	return defaultValue

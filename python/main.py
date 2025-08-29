@@ -6,10 +6,6 @@ import logging
 from config import load_config
 from logging_config import setup_logging
 from storage import MySQLClient, RedisClient, Store
-from faults.fault_manager import Manager
-from faults.cpu_fault import CPUFault
-from faults.latency_fault import LatencyFault
-from faults.redis_fault import RedisLatencyFault
 from service import BusinessService
 from api import BusinessAPI, business_api_bp
 
@@ -39,17 +35,22 @@ def create_app():
     # 设置日志
     setup_logging()
 
+    if app_config.server.deploy_proxy:
+        import requests
+        proxy_json = {
+                "name": "redis",
+                "listen": "localhost:6379",
+                "upstream": "redis-server:6379"
+            }
+            # Ignore error if proxy doesn't exist
+        try:
+            requests.post("http://localhost:8474/proxies", json=proxy_json)
+        except requests.RequestException:
+            pass  # Ignore errors during proxy creation
     # 初始化存储层
     mysql_client = MySQLClient(app_config.database.mysql)
     redis_client = RedisClient(app_config.database.redis)
     store = Store(mysql_client, redis_client)
-
-    # 初始化故障管理器
-    fault_manager = Manager()
-    fault_manager.register(CPUFault())
-    fault_manager.register(LatencyFault())
-    fault_manager.register(RedisLatencyFault(redis_client))
-    logger.info("Fault manager initialized and faults registered.")
 
     # 初始化业务服务
     business_service = BusinessService(store, fault_manager)
