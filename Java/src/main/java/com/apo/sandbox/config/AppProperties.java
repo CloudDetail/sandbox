@@ -29,6 +29,13 @@ public class AppProperties {
     @Value("${REDIS_FAULT_DEFAULT_DELAY:100}")
     private int redisFaultDefaultDelay;
 
+    // --- Toxiproxy Configuration ---
+    @Value("${PROXY_ADDR:localhost:8474}")
+    private String proxyAddr;
+
+    @Value("${PROXY_LISTEN_ADDR:0.0.0.0:20000}")
+    private String proxyListenAddr;
+
     // --- Getters ---
     public String getRedisHost() {
         return redisHost;
@@ -56,5 +63,13 @@ public class AppProperties {
 
     public int getRedisFaultDefaultDelay() {
         return redisFaultDefaultDelay;
+    }
+
+    public String getProxyAddr() {
+        return proxyAddr;
+    }
+
+    public String getProxyListenAddr() {
+        return proxyListenAddr;
     }
 }

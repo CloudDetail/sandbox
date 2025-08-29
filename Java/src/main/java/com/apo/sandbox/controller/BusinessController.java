@@ -1,5 +1,6 @@
 package com.apo.sandbox.controller;
 
+import com.apo.sandbox.config.AppProperties;
 import com.apo.sandbox.model.User;
 import com.apo.sandbox.service.BusinessService;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +17,31 @@ import java.util.Optional;
 public class BusinessController {
 
     private final BusinessService businessService;
+    private final AppProperties appProperties;
 
-    public BusinessController(BusinessService businessService) {
+    public BusinessController(BusinessService businessService, AppProperties appProperties) {
         this.businessService = businessService;
+        this.appProperties = appProperties;
     }
 
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getUsersCached(
-            @RequestParam("chaos") Optional<String> chaos,
-            @RequestParam("duration") Optional<Integer> duration) {
+    @GetMapping("/users/1")
+    public ResponseEntity<List<User>> getUsersWithLatency(@RequestParam("mode") Optional<String> mode) {
+        int duration = appProperties.getLatencyFaultDefaultDelay();
+        List<User> users = businessService.getUsersWithLatency(mode, duration);
+        return ResponseEntity.ok(users);
+    }
 
-        List<User> users = businessService.getUsersCached(chaos, duration);
+    @GetMapping("/users/2")
+    public ResponseEntity<List<User>> getUsersWithCPUBurn(@RequestParam("mode") Optional<String> mode) {
+        int duration = appProperties.getCpuFaultDefaultDuration();
+        List<User> users = businessService.getUsersWithCPUBurn(mode, duration);
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/users/3")
+    public ResponseEntity<List<User>> getUsersWithRedisLatency(@RequestParam("mode") Optional<String> mode) {
+        int duration = appProperties.getRedisFaultDefaultDelay();
+        List<User> users = businessService.getUsersWithRedisLatency(mode, duration);
         return ResponseEntity.ok(users);
     }
 }

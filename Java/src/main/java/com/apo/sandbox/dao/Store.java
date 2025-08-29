@@ -1,6 +1,7 @@
 package com.apo.sandbox.dao;
 
 import com.apo.sandbox.model.User;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -8,8 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 
 @Repository
 public class Store {
@@ -17,13 +16,12 @@ public class Store {
     private final IRedisClient redisClient;
     private final IDatabaseClient dbClient;
 
-
     public Store(IRedisClient redisClient, IDatabaseClient dbClient) {
         this.redisClient = redisClient;
         this.dbClient = dbClient;
     }
 
-    public List<User> queryUsersFromDatabase() throws Exception {
+    public List<User> queryUserFromMySQL() throws Exception {
         // Check if database is connected
         if (!dbClient.isConnected()) {
             log.info("Database is not connected. Returning mocked users.");
@@ -64,22 +62,7 @@ public class Store {
         return users;
     }
 
-    public List<User> queryUsersCached() throws Exception {
-        // If Redis client is the mock client, simulate HTTP operation
-        if (redisClient instanceof MockRedisClient) {
-            log.info("Redis client is mock. Simulating HTTP operation to fetch users.");
-            TimeUnit.MILLISECONDS.sleep(100); // Simulate network delay
-            List<User> users = new ArrayList<>();
-            for (int i = 0; i < 10; i++) {
-                users.add(new User(
-                        UUID.randomUUID().toString(),
-                        String.format("Mock User HTTP %d", i + 1),
-                        String.format("mock_http%d@apo.com", i + 1)));
-            }
-            log.info("Successfully simulated HTTP operation for 10 users.");
-            return users;
-        }
-
+    public List<User> queryUserFromRedis() throws Exception {
         // Try to get from Redis cache
         List<String> userIDs = redisClient.getUserIDs();
         if (userIDs != null && !userIDs.isEmpty()) {
