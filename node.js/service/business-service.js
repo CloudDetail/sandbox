@@ -11,7 +11,7 @@ if (process.env.DEPLOY_PROXY === 'true') {
         name: "redis",
         upstream: "redis-service:6379"
     };
-    proxy = toxiproxy.createProxy(proxyBody);
+    proxy = await toxiproxy.createProxy(proxyBody);
 }
 
 /**
@@ -133,6 +133,7 @@ class BusinessService {
                     // Toxiproxy is a framework for simulating network conditions.
                     // https://github.com/shopify/toxiproxy
                     this.toxic = await proxy.addToxic(toxicBody);
+                    this.active
                 } catch (error) {
                     logger.warn(`Toxiproxy添加延迟失败: ${error.message}`);
                 }
