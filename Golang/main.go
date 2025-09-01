@@ -106,7 +106,7 @@ func initStorage() (*storage.Store, error) {
 		proxies, err := client.Populate([]toxiproxy.Proxy{{
 			Name:     "redis",
 			Listen:   appConfig.Database.Proxy.ListenAddr,
-			Upstream: fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port),
+			Upstream: "redis-service:6379",
 			Enabled:  true,
 		}})
 		if err != nil {
@@ -114,7 +114,7 @@ func initStorage() (*storage.Store, error) {
 		}
 		store.Proxy = proxies[0]
 	}
-	redisClient, err := storage.NewRedis(appConfig.Database.Proxy.ListenAddr)
+	redisClient, err := storage.NewRedis(fmt.Sprintf("%s:%d", appConfig.Database.Redis.Host, appConfig.Database.Redis.Port))
 	if err != nil {
 		return nil, err
 	}

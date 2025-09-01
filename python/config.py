@@ -12,7 +12,7 @@ class ServerConfig:
 
 class MySQLConfig:
     def __init__(self):
-        self.host = os.getenv("MYSQL_HOST", "localhost")
+        self.host = os.getenv("MYSQL_HOST", "mysql-service")
         self.port = int(os.getenv("MYSQL_PORT", 3306))
         self.username = os.getenv("MYSQL_USERNAME", "root")
         self.password = os.getenv("MYSQL_PASSWORD", "")

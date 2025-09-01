@@ -40,7 +40,7 @@ def create_app():
         proxy_json = {
                 "name": "redis",
                 "listen": "localhost:6379",
-                "upstream": "redis-server:6379"
+                "upstream": "redis-service:6379"
             }
             # Ignore error if proxy doesn't exist
         try:
@@ -53,7 +53,7 @@ def create_app():
     store = Store(mysql_client, redis_client)
 
     # 初始化业务服务
-    business_service = BusinessService(store, fault_manager)
+    business_service = BusinessService(store)
 
     # 先初始化API层并注册路由到Blueprint
     business_api = BusinessAPI(business_service)

@@ -130,14 +130,14 @@ class BusinessService:
                     })
                     self._active = True
                 except requests.RequestException as e:
-                    logger.warning(f"Failed to add Redis latency: {e}")
+                    logger.warning(f"type 3 failed")
         else:
             if self._active:
                 try:
                     requests.delete("http://localhost:8474/proxies/redis/toxics/latency")
                     self._active = False
                 except requests.RequestException as e:
-                    logger.warning(f"Failed to remove Redis latency: {e}")
+                    logger.warning(f"type 3 failed to remove")
 
         self.store.query_users_from_redis()
         users, err = self.store.query_or_create_users_from_mysql()

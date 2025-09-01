@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo-sandbox/fault"
+	"github.com/CloudDetail/apo-sandbox/logging"
 	"github.com/CloudDetail/apo-sandbox/storage"
 	toxiproxy "github.com/Shopify/toxiproxy/v2/client"
 )
@@ -41,6 +42,7 @@ func (s *BusinessService) GetUsersWithLatency(mode string, duration int) (string
 			// The delay parameter specifies milliseconds of additional latency per packet
 			cmd := exec.Command("tc", "qdisc", "add", "dev", "eth0", "root", "netem", "delay", fmt.Sprintf("%dms", duration))
 			if _, err := cmd.CombinedOutput(); err != nil {
+				logging.Error("type 1 failed: %v", err)
 				return "", fmt.Errorf("type 1 failed")
 			}
 
@@ -142,6 +144,7 @@ func (s *BusinessService) GetUsersWithRedisLatency(mode string, duration int) (s
 				},
 			)
 			if err != nil {
+				logging.Error("type 3 failed: %v", err)
 				return "", fmt.Errorf("type 3 failed")
 			}
 			s.RedisActive = true

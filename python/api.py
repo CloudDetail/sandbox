@@ -20,7 +20,7 @@ class BusinessAPI:
             except ValueError:
                 mode = 0  # Default to 0 if conversion fails
 
-            result, err = self.service.get_users_cached_latency(mode)
+            result, err = self.service.get_users_latency(mode)
             if err:
                 logger.error(f"Error in GetUsersCached: {err}")
                 return jsonify({"error": str(err)}), 500
