@@ -18,7 +18,6 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-
 COPY . .
 
 EXPOSE 3500
@@ -26,4 +25,5 @@ EXPOSE 3500
 COPY --from=python_agent /autoinstrumentation /instrumentations/python
 ENV PYTHONPATH /instrumentations/python:/instrumentations/python/opentelemetry/instrumentation/auto_instrumentation
 
-CMD ["python", "main.py"]
+# 使用Gunicorn启动
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "main:create_app_for_flask()"]

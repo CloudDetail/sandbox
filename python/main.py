@@ -13,7 +13,6 @@ from faults.redis_fault import RedisLatencyFault
 from service import BusinessService
 from api import BusinessAPI, business_api_bp
 
-# 创建Flask应用实例
 app = Flask(__name__)
 logger = logging.getLogger(__name__)
 
@@ -98,7 +97,7 @@ if __name__ == "__main__":
     port = int(config.server.port)
     logger.info(f"Starting server on port {port}")
     try:
-        flask_app.run(host='0.0.0.0', port=port, debug=False)
+        flask_app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
     except Exception as e:
         logger.error(f"Server error: {e}")
     finally:
